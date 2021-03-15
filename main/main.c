@@ -146,8 +146,8 @@ void demo_task(void *pvParameters)
 			LED_1 = 0; LED_G = 0;;
 		}
 
-		ADC_IN  = Get_Adc(0);
-		ADC_REF = Get_Adc(6);
+		// ADC_IN  = Get_Adc(0);
+		// ADC_REF = Get_Adc(6);
 
 		V_sys0 = (3.300f / 4096.0f) * (float)ADC_IN;  //直接计算偿值
 		V_sys1 = (4096.0f * 2.500f) / (float)ADC_REF; //基准计算值
@@ -415,15 +415,16 @@ void save_flash_parameter(void)
 
 int main(void)
 {
-	Stm32_Clock_Init(6); //系统时钟设置  12Mhz * 6 = 72MHZ
+	// Stm32_Clock_Init(6); //系统时钟设置  12Mhz * 6 = 72MHZ
+	Stm32_Clock_Init(9); //系统时钟设置  8Mhz * 9 = 72MHZ
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组4
 
 	/* 初始化LED灯 */
 	LED_init();
 
 	/* 初始化串口 */
-	UART1_Init(72,921600); //总线时钟：72Mhz
-	UART2_Init(36,921600); //总线时钟：36Mhz
+	UART1_Init(921600); //总线时钟：72Mhz
+	UART2_Init(921600); //总线时钟：36Mhz
 
 	/* 10khz的计数频率，中断一次  100us一次 */
 	TIM3_Int_Init(999,7199);
