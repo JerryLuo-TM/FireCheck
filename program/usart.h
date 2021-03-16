@@ -15,6 +15,9 @@ void uart2_send_string(unsigned char *buf,unsigned short length);
 void debug_printf( const char * format, ... );
 void debug_printf2( const char * format, ... );
 
+void MYDMA_Config(DMA_Channel_TypeDef* DMA_CHx);
+void MYDMA_Enable(DMA_Channel_TypeDef* DMA_CHx);
+
 #endif
 
 

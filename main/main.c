@@ -163,12 +163,14 @@ void demo_task(void *pvParameters)
 		Data_Conversion(V_sys1, data, (uint8_t*)&p_point->v_sys);
 		Data_Conversion(sys_par.voltage, data, (uint8_t*)&p_point->v_offset);
 		Data_Conversion(Res, data, (uint8_t*)&p_point->Res);
-		uart2_send_string(res_buffer, sizeof(RES));
+
+		// uart2_send_string(res_buffer, sizeof(RES));
 
 		/* print log */
 		// debug_printf("\r\n");
 		// debug_printf("ADC_IN=%d  V_sys0=%f V_sys1=%f \r\n", ADC_IN, V_sys0, V_sys1);
-		debug_printf("V_Res = %f Res = %0.5f \r\n", V_Res, Res);
+		// debug_printf("V_Res = %f Res = %0.5f \r\n", V_Res, Res);
+		// debug_printf2("V_Res = %f Res = %0.5f \r\n", V_Res, Res);
 
 		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
 	}
@@ -176,34 +178,43 @@ void demo_task(void *pvParameters)
 
 void race_task(void *pvParameters)
 {
-	uint32_t recevice_length;
-	uint8_t recevice_buffer[64];
+	uint32_t receive_length;
+	uint8_t receive_buffer[128];
 	RACE_Hdr *p_race_hdr;
 	while (1)
 	{
 		if( xSemaphoreTake( xSemaphore_rx, portMAX_DELAY) == pdPASS ) {
-			recevice_length = RingBuffer_GetCount(&rx_ring);
-			if (recevice_length > 4) {
-				memset(recevice_buffer, 0, sizeof(recevice_buffer));
-				RingBuffer_PopMult(&rx_ring, &recevice_buffer[0], recevice_length);
-				p_race_hdr = (RACE_Hdr*)&recevice_buffer[0];
-				if ((p_race_hdr->head == 0x05) && (p_race_hdr->type == 0x5A) && (p_race_hdr->length != 0)) {
-					if (p_race_hdr->id == 0x0F00) { // 校准零点命令
-						calibrate_zero_parameter();
-					} else if (p_race_hdr->id == 0x0F01) {
-						// calibrate_1mr_parameter();
-					} else if (p_race_hdr->id == 0x0F10) { // 获取电流参数命令
-						get_current_parameter();
-					} else if (p_race_hdr->id == 0x0F11) { // 设置电流参数命令
-						if (p_race_hdr->length == 6) {
-							uint32_t data;
-							data = *(uint32_t*)p_race_hdr->data;
-							set_current_parameter(data);
-						}
-					}
-				}
+			receive_length = RingBuffer_GetCount(&rx_ring);
+			if (receive_length > 0) {
+				memset(receive_buffer, 0, sizeof(receive_buffer));
+				RingBuffer_PopMult(&rx_ring, &receive_buffer[0], receive_length);
+				uart1_send_string(receive_buffer, receive_length);
 			}
 		}
+
+		// if( xSemaphoreTake( xSemaphore_rx, portMAX_DELAY) == pdPASS ) {
+		// 	receive_length = RingBuffer_GetCount(&rx_ring);
+		// 	if (receive_length > 4) {
+		// 		memset(receive_buffer, 0, sizeof(receive_buffer));
+		// 		RingBuffer_PopMult(&rx_ring, &receive_buffer[0], receive_length);
+		// 		p_race_hdr = (RACE_Hdr*)&receive_buffer[0];
+		// 		if ((p_race_hdr->head == 0x05) && (p_race_hdr->type == 0x5A) && (p_race_hdr->length != 0)) {
+		// 			if (p_race_hdr->id == 0x0F00) { // 校准零点命令
+		// 				calibrate_zero_parameter();
+		// 			} else if (p_race_hdr->id == 0x0F01) {
+		// 				// calibrate_1mr_parameter();
+		// 			} else if (p_race_hdr->id == 0x0F10) { // 获取电流参数命令
+		// 				get_current_parameter();
+		// 			} else if (p_race_hdr->id == 0x0F11) { // 设置电流参数命令
+		// 				if (p_race_hdr->length == 6) {
+		// 					uint32_t data;
+		// 					data = *(uint32_t*)p_race_hdr->data;
+		// 					set_current_parameter(data);
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 }
 
