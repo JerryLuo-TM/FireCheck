@@ -298,6 +298,8 @@ int main(void)
 	Stm32_Clock_Init(9); //系统时钟设置  8Mhz * 9 = 72MHZ
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组4
 
+	delay_init();
+
 	/* 初始化LED灯 */
 	LED_init();
 
@@ -316,6 +318,19 @@ int main(void)
 
 	/* 创建task */
 	create_app_task();
+
+	/* I2C 24CXX 初始化 */
+	AT24CXX_Init();
+
+	while(AT24CXX_Check())//检测不到24c02
+	{
+		debug_printf("24C02 Check Failed! \r\n");
+		delay_ms(500);
+		debug_printf("Please Check!      \r\n");
+		delay_ms(500);
+	}
+
+	debug_printf("24C02 Check! pass \r\n");
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();

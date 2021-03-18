@@ -8,6 +8,7 @@
 #include "ring_buffer.h"
 
 
+#define AT24CXX_ADDRESS 0xAE
 
 //初始化IIC接口
 void AT24CXX_Init(void)
@@ -23,19 +24,19 @@ uint8_t AT24CXX_ReadOneByte(uint16_t ReadAddr)
 	uint8_t temp=0;
     IIC_Start();
 	if(EE_TYPE>AT24C16) {
-		IIC_Send_Byte(0XA0);	   //发送写命令
+		IIC_Send_Byte(AT24CXX_ADDRESS);	   //发送写命令
 		IIC_Wait_Ack();
 		IIC_Send_Byte(ReadAddr>>8);//发送高地址
 		IIC_Wait_Ack();
 	} else {
-		IIC_Send_Byte(0XA0+((ReadAddr/256)<<1));   //发送器件地址0XA0,写数据
+		IIC_Send_Byte(AT24CXX_ADDRESS + ((ReadAddr/256)<<1));   //发送器件地址0XA0,写数据
 	}
 
 	IIC_Wait_Ack();
     IIC_Send_Byte(ReadAddr%256);   //发送低地址
 	IIC_Wait_Ack();
 	IIC_Start();
-	IIC_Send_Byte(0XA1);           //进入接收模式
+	IIC_Send_Byte(AT24CXX_ADDRESS|0x1);           //进入接收模式
 	IIC_Wait_Ack();
     temp = IIC_Read_Byte(0);
     IIC_Stop();//产生一个停止条件
@@ -50,11 +51,11 @@ void AT24CXX_WriteOneByte(uint16_t WriteAddr,uint8_t DataToWrite)
 {
     IIC_Start();
 	if(EE_TYPE > AT24C16) {
-		IIC_Send_Byte(0XA0);	    //发送写命令
+		IIC_Send_Byte(AT24CXX_ADDRESS);	    //发送写命令
 		IIC_Wait_Ack();
 		IIC_Send_Byte(WriteAddr>>8);//发送高地址
 	} else {
-		IIC_Send_Byte(0XA0+((WriteAddr/256)<<1));   //发送器件地址0XA0,写数据
+		IIC_Send_Byte(AT24CXX_ADDRESS + ((WriteAddr/256)<<1));   //发送器件地址0XA0,写数据
 	}
 	IIC_Wait_Ack();
     IIC_Send_Byte(WriteAddr%256);   //发送低地址
