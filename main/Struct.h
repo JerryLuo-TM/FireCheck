@@ -8,11 +8,13 @@
 #include "ring_buffer.h"
 #include "stdbool.h"
 #include "timer.h"
-#include "LED.h"
-#include "delay.h"
-#include "stmflash.h"
 #include "usart.h"
+#include "iic.h"
 
+#include "delay.h"
+#include "LED.h"
+#include "AT24CXX.h"
+#include "stmflash.h"
 
 //操作系统相关头文件
 #include "FreeRTOS.h"
