@@ -15,22 +15,13 @@ typedef struct {
 	uint8_t  type;
 	uint16_t length;
 	uint16_t id;
-} __attribute__ ((packed)) RACE_header_Hdr;
-
-typedef struct {
-	uint8_t  head;
-	uint8_t  type;
-	uint16_t length;
-	uint16_t id;
-	uint8_t  data[0];
-} __attribute__ ((packed)) RACE_Hdr;
+} __attribute__ ((packed)) RACE_HEADER_STR;
 
 typedef struct {
 	uint32_t magic_number; //55A55BB
 	uint32_t enlarge;
 	float    current;  // mA
 	float    voltage;  // V
-	
 } __attribute__ ((packed)) SYS_PARAMETER_Hdr;
 
 SYS_PARAMETER_Hdr sys_par;
@@ -48,13 +39,7 @@ SYS_PARAMETER_Hdr sys_par;
 //05 5C 03 00 11 0F 00  			设置成功
 
 
-
-
-
 void calibrate_zero_parameter(void);
-void calibrate_1mr_parameter(void);
-void get_current_parameter(void);
-void set_current_parameter(uint32_t val);
 void load_flash_parameter(void);
 void save_flash_parameter(void);
 
@@ -124,11 +109,11 @@ void demo_task(void *pvParameters)
 {
 	uint32_t count;
 	uint32_t ADC_IN, ADC_REF;
-	float V_sys0, V_sys1, V_Res, Res;
+	float V_sys1, V_Res, Res;
 
 	uint8_t res_buffer[64];
 	typedef struct {
-		RACE_header_Hdr hdr;
+		RACE_HEADER_STR hdr;
 		uint32_t v_sys;		// 系统电压
 		uint32_t v_offset;	// 零点偏置电压
 		uint32_t Res;		// 检测电阻阻值 
@@ -143,13 +128,12 @@ void demo_task(void *pvParameters)
 		if (++count%2 == 0) {
 			LED_1 = 1; LED_G = 1;;
 		} else {
-			LED_1 = 0; LED_G = 0;;
+			LED_1 = 0; LED_G = 0;
 		}
 
-		// ADC_IN  = Get_Adc(0);
-		// ADC_REF = Get_Adc(6);
+		ADC_IN  = Get_Adc(0);
+		ADC_REF = Get_Adc(6);
 
-		V_sys0 = (3.300f / 4096.0f) * (float)ADC_IN;  //直接计算偿值
 		V_sys1 = (4096.0f * 2.500f) / (float)ADC_REF; //基准计算值
 
 		V_Res = (2.500f * (float)ADC_IN) / (float)ADC_REF + sys_par.voltage;
@@ -163,16 +147,13 @@ void demo_task(void *pvParameters)
 		Data_Conversion(V_sys1, data, (uint8_t*)&p_point->v_sys);
 		Data_Conversion(sys_par.voltage, data, (uint8_t*)&p_point->v_offset);
 		Data_Conversion(Res, data, (uint8_t*)&p_point->Res);
-
 		// uart2_send_string(res_buffer, sizeof(RES));
 
-		/* print log */
-		// debug_printf("\r\n");
 		// debug_printf("ADC_IN=%d  V_sys0=%f V_sys1=%f \r\n", ADC_IN, V_sys0, V_sys1);
 		// debug_printf("V_Res = %f Res = %0.5f \r\n", V_Res, Res);
 		// debug_printf2("V_Res = %f Res = %0.5f \r\n", V_Res, Res);
 
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/5);
 	}
 }
 
@@ -180,7 +161,6 @@ void race_task(void *pvParameters)
 {
 	uint32_t receive_length;
 	uint8_t receive_buffer[128];
-	RACE_Hdr *p_race_hdr;
 	while (1)
 	{
 		if( xSemaphoreTake( xSemaphore_rx, portMAX_DELAY) == pdPASS ) {
@@ -191,30 +171,6 @@ void race_task(void *pvParameters)
 				uart1_send_string(receive_buffer, receive_length);
 			}
 		}
-
-		// if( xSemaphoreTake( xSemaphore_rx, portMAX_DELAY) == pdPASS ) {
-		// 	receive_length = RingBuffer_GetCount(&rx_ring);
-		// 	if (receive_length > 4) {
-		// 		memset(receive_buffer, 0, sizeof(receive_buffer));
-		// 		RingBuffer_PopMult(&rx_ring, &receive_buffer[0], receive_length);
-		// 		p_race_hdr = (RACE_Hdr*)&receive_buffer[0];
-		// 		if ((p_race_hdr->head == 0x05) && (p_race_hdr->type == 0x5A) && (p_race_hdr->length != 0)) {
-		// 			if (p_race_hdr->id == 0x0F00) { // 校准零点命令
-		// 				calibrate_zero_parameter();
-		// 			} else if (p_race_hdr->id == 0x0F01) {
-		// 				// calibrate_1mr_parameter();
-		// 			} else if (p_race_hdr->id == 0x0F10) { // 获取电流参数命令
-		// 				get_current_parameter();
-		// 			} else if (p_race_hdr->id == 0x0F11) { // 设置电流参数命令
-		// 				if (p_race_hdr->length == 6) {
-		// 					uint32_t data;
-		// 					data = *(uint32_t*)p_race_hdr->data;
-		// 					set_current_parameter(data);
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// }
 	}
 }
 
@@ -253,7 +209,7 @@ void calibrate_zero_parameter(void)
 	uint8_t res_buffer[64];
 
 	typedef struct {
-		RACE_header_Hdr hdr;
+		RACE_HEADER_STR hdr;
 		uint8_t status;
 	} __attribute__ ((packed)) RES, *p_RES;
 
@@ -275,96 +231,8 @@ void calibrate_zero_parameter(void)
 	p_point->hdr.type   = 0x5C;
 	p_point->hdr.length = sizeof(RES) - 4;
 	p_point->hdr.id     = 0x0F00;
-	p_point->status	  = 0x00;
+	p_point->status	    = 0x00;
 	uart2_send_string(res_buffer, sizeof(RES));
-}
-
-void calibrate_1mr_parameter(void)
-{
-	uint32_t i;
-	uint32_t ADC_IN, ADC_REF;
-	float V_Res = 0;
-
-	uint8_t res_buffer[64];
-
-	typedef struct {
-		RACE_header_Hdr hdr;
-		uint8_t status;
-	} __attribute__ ((packed)) RES, *p_RES;
-
-	for (i = 0; i < 10; i++) {
-		ADC_IN  = Get_Adc(0);
-		ADC_REF = Get_Adc(6);
-
-		V_Res += (2.500f * (float)ADC_IN) / (float)ADC_REF;
-	}
-
-	V_Res = V_Res / 10.0f + sys_par.voltage;
-
-	debug_printf("ADC_IN=%d ADC_REF=%d V_Res = %f \r\n", ADC_IN, ADC_REF, V_Res);
-
-	sys_par.enlarge = (uint32_t)((V_Res * 1000000.0f) / sys_par.current);
-
-	debug_printf("calibrate 1mr done enlarge = %d \r\n", sys_par.enlarge);
-
-	save_flash_parameter();
-
-	/* respose */
-	p_RES p_point = (p_RES)res_buffer;
-	p_point->hdr.head   = 0x05;
-	p_point->hdr.type   = 0x5C;
-	p_point->hdr.length = sizeof(RES) - 4;
-	p_point->hdr.id     = 0x0F01;
-	p_point->status	  = 0x00;
-	uart2_send_string(res_buffer, sizeof(RES));
-}
-
-void get_current_parameter(void)
-{
-	uint8_t res_buffer[64];
-
-	typedef struct {
-		RACE_header_Hdr hdr;
-		uint8_t status;
-		unsigned int current;
-	} __attribute__ ((packed)) RES, *p_RES;
-
-	/* respose */
-	p_RES p_point = (p_RES)res_buffer;
-	p_point->hdr.head   = 0x05;
-	p_point->hdr.type   = 0x5C;
-	p_point->hdr.length = sizeof(RES) - 4;
-	p_point->hdr.id     = 0x0F10;
-	p_point->status	  = 0x00;
-	p_point->current    = (int)sys_par.current;
-	uart2_send_string(res_buffer, sizeof(RES));
-
-	debug_printf("get current=%fmA \r\n", sys_par.current);
-}
-
-void set_current_parameter(uint32_t val)
-{
-	uint8_t res_buffer[64];
-
-	typedef struct {
-		RACE_header_Hdr hdr;
-		uint8_t status;
-	} __attribute__ ((packed)) RES, *p_RES;
-
-	sys_par.current = (float)val;
-
-	/* respose */
-	p_RES p_point = (p_RES)res_buffer;
-	p_point->hdr.head   = 0x05;
-	p_point->hdr.type   = 0x5C;
-	p_point->hdr.length = sizeof(RES) - 4;
-	p_point->hdr.id     = 0x0F11;
-	p_point->status	  = 0x00;
-	uart2_send_string(res_buffer, sizeof(RES));
-
-	save_flash_parameter();
-
-	debug_printf("set current=%fmA \r\n", sys_par.current);
 }
 
 void load_flash_parameter(void)

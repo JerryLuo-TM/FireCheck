@@ -12,7 +12,7 @@ typedef struct{
 	uint8_t R_Val;
 	uint8_t G_Val;
 	uint8_t B_Val;
-}T_RGB_CTRL;
+} T_RGB_CTRL;
 
 int8_t WS2812_Init(void);
 int8_t WS2812_Send24Bits(T_RGB_CTRL *sRGBVal);
