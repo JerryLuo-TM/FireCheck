@@ -116,7 +116,7 @@ void demo_task(void *pvParameters)
 		RACE_HEADER_STR hdr;
 		uint32_t v_sys;		// 系统电压
 		uint32_t v_offset;	// 零点偏置电压
-		uint32_t Res;		// 检测电阻阻值 
+		uint32_t Res;		// 检测电阻阻值
 	} __attribute__ ((packed)) RES, *p_RES;
 
 	p_RES p_point = (p_RES)res_buffer;
@@ -267,7 +267,7 @@ void load_flash_parameter(void)
 		sys_par.voltage = Data_Conversion_float((uint8_t*)&buffer[12]);
 	}
 
-	debug_printf("magic=0x%08x enlarge=%d vol=%fV current=%fmA \r\n", 
+	debug_printf("magic=0x%08x enlarge=%d vol=%fV current=%fmA \r\n",
 						sys_par.magic_number, sys_par.enlarge, sys_par.voltage, sys_par.current);
 }
 
@@ -288,7 +288,7 @@ void save_flash_parameter(void)
 	/* write flash */
 	STMFLASH_Write(FLASH_SAVE_ADDR, (uint16_t*)&buffer[0], sizeof(SYS_PARAMETER_Hdr)/2);
 
-	debug_printf("magic=0x%08x enlarge=%d vol=%fV current=%fmA \r\n", 
+	debug_printf("magic=0x%08x enlarge=%d vol=%fV current=%fmA \r\n",
 						sys_par.magic_number, sys_par.enlarge, sys_par.voltage, sys_par.current);
 }
 
@@ -314,7 +314,7 @@ int main(void)
 	Adc_Init();
 
 	/* 从flash中加载计算参数 */
-	load_flash_parameter();
+	//load_flash_parameter();
 
 	/* 创建task */
 	create_app_task();
@@ -322,15 +322,13 @@ int main(void)
 	/* I2C 24CXX 初始化 */
 	AT24CXX_Init();
 
-	while(AT24CXX_Check())//检测不到24c02
-	{
+	while (AT24CXX_Check() == 1) { //检测不到24c02
 		debug_printf("24C02 Check Failed! \r\n");
 		delay_ms(500);
-		debug_printf("Please Check!      \r\n");
+		debug_printf("Please Check!      \r\n\r\n");
 		delay_ms(500);
 	}
 
-	debug_printf("24C02 Check! pass \r\n");
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();

@@ -8,7 +8,7 @@
 #include "ring_buffer.h"
 
 
-#define AT24CXX_ADDRESS 0xAE
+#define AT24CXX_ADDRESS 0xA0
 
 //初始化IIC接口
 void AT24CXX_Init(void)
@@ -23,7 +23,7 @@ uint8_t AT24CXX_ReadOneByte(uint16_t ReadAddr)
 {
 	uint8_t temp=0;
     IIC_Start();
-	if(EE_TYPE>AT24C16) {
+	if(EE_TYPE > AT24C16) {
 		IIC_Send_Byte(AT24CXX_ADDRESS);	   //发送写命令
 		IIC_Wait_Ack();
 		IIC_Send_Byte(ReadAddr>>8);//发送高地址
@@ -109,7 +109,9 @@ uint8_t AT24CXX_Check(void)
 	} else { //排除第一次初始化的情况
 		AT24CXX_WriteOneByte(255,0X55);
 		temp=AT24CXX_ReadOneByte(255);
-		if(temp==0X55)return 0;
+		if(temp==0X55) {
+			return 0;
+		}
 	}
 	return 1;
 }
