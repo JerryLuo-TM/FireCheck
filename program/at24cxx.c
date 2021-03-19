@@ -24,19 +24,19 @@ uint8_t AT24CXX_ReadOneByte(uint16_t ReadAddr)
 	uint8_t temp=0;
     IIC_Start();
 	if(EE_TYPE > AT24C16) {
-		IIC_Send_Byte(AT24CXX_ADDRESS);	   //发送写命令
+		IIC_Send_Byte(AT24CXX_ADDRESS); //发送写命令
 		IIC_Wait_Ack();
-		IIC_Send_Byte(ReadAddr>>8);//发送高地址
+		IIC_Send_Byte(ReadAddr>>8); //发送高地址
 		IIC_Wait_Ack();
 	} else {
-		IIC_Send_Byte(AT24CXX_ADDRESS + ((ReadAddr/256)<<1));   //发送器件地址0XA0,写数据
+		IIC_Send_Byte(AT24CXX_ADDRESS + ((ReadAddr/256)<<1)); //发送器件地址0XA0,写数据
 	}
 
-	IIC_Wait_Ack();
-    IIC_Send_Byte(ReadAddr%256);   //发送低地址
+	// IIC_Wait_Ack();
+    IIC_Send_Byte(ReadAddr%256); //发送低地址
 	IIC_Wait_Ack();
 	IIC_Start();
-	IIC_Send_Byte(AT24CXX_ADDRESS|0x1);           //进入接收模式
+	IIC_Send_Byte(AT24CXX_ADDRESS|0x1); //进入接收模式
 	IIC_Wait_Ack();
     temp = IIC_Read_Byte(0);
     IIC_Stop();//产生一个停止条件
@@ -104,12 +104,12 @@ uint8_t AT24CXX_Check(void)
 {
 	uint8_t temp;
 	temp=AT24CXX_ReadOneByte(255);//避免每次开机都写AT24CXX
-	if(temp == 0X55) {
+	if(temp == 0X45) {
 		return 0;
 	} else { //排除第一次初始化的情况
-		AT24CXX_WriteOneByte(255,0X55);
+		AT24CXX_WriteOneByte(255,0X45);
 		temp=AT24CXX_ReadOneByte(255);
-		if(temp==0X55) {
+		if(temp==0X45) {
 			return 0;
 		}
 	}
@@ -141,3 +141,33 @@ void AT24CXX_Write(uint16_t WriteAddr,uint8_t *pBuffer,uint16_t NumToWrite)
 	}
 }
 
+void AT24CXX_Read_Byte_Len(uint16_t ReadAddr, uint8_t *buf, uint16_t len)
+{
+	uint16_t i;
+
+	IIC_Start();
+
+	if(EE_TYPE > AT24C16) {
+		IIC_Send_Byte(AT24CXX_ADDRESS); //发送写命令
+		IIC_Wait_Ack();
+		IIC_Send_Byte(ReadAddr>>8); //发送高地址
+		IIC_Wait_Ack();
+	} else {
+		IIC_Send_Byte(AT24CXX_ADDRESS + ((ReadAddr/256)<<1)); //发送器件地址0XA0,写数据
+	}
+
+	IIC_Send_Byte(ReadAddr%256); //发送低地址
+	IIC_Wait_Ack();
+	IIC_Start();
+	IIC_Send_Byte(AT24CXX_ADDRESS|0x1); //进入接收模式
+	IIC_Wait_Ack();
+
+	for(i=0; i<len; i++) {
+		if(i == (len-1)) {
+			*buf++=IIC_Read_Byte(0);
+		} else {
+			*buf++=IIC_Read_Byte(1);
+		}
+	}
+	IIC_Stop();
+}

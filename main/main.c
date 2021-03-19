@@ -329,6 +329,32 @@ int main(void)
 		delay_ms(500);
 	}
 
+	{
+		uint8_t buffer[256];
+		uint8_t read_buf[256];
+		for (int i = 0; i < 256; i++) {
+			buffer[i] = 0x5A;
+			read_buf[i] = 0;
+		}
+
+		AT24CXX_Write(0, buffer, 256);
+		AT24CXX_Read(0, read_buf, 256);
+		// AT24CXX_Read_Byte_Len(0, read_buf, 256);
+
+		for (int i = 0; i < 256; i++) {
+			if (buffer[i] != read_buf[i]) {
+				debug_printf("%d error w:%x r:%x \r\n", i, buffer[i], read_buf[i]);
+			} else {
+				debug_printf("%d pass w:%x r:%x \r\n", i, buffer[i], read_buf[i]);
+			}
+		}
+
+		uint32_t temp;
+		AT24CXX_WriteOneByte(4095,0X36);
+		temp=AT24CXX_ReadOneByte(4095);
+		debug_printf("4M %x    \r\n", temp);
+	}
+
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();

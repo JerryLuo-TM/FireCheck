@@ -27,6 +27,7 @@ void AT24CXX_Read(uint16_t ReadAddr,uint8_t *pBuffer,uint16_t NumToRead);   	//�
 uint8_t AT24CXX_Check(void);  //检查器件
 void AT24CXX_Init(void); //初始化IIC
 
+void AT24CXX_Read_Byte_Len(uint16_t ReadAddr, uint8_t *buf, uint16_t len);
 
 #endif
 

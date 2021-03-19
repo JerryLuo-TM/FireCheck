@@ -34,9 +34,9 @@ void IIC_Start(void)
 	SDA_OUT();	//sda线输出
 	IIC_SDA = 1;
 	IIC_SCL = 1;
-	delay_us(4);
+	delay_us(1);
 	IIC_SDA = 0;	//START:when CLK is high,DATA change form high to low
-	delay_us(4);
+	delay_us(1);
 	IIC_SCL = 0;	//钳住I2C总线，准备发送或接收数据
 }
 
@@ -46,9 +46,10 @@ void IIC_Stop(void)
 	SDA_OUT();	//sda线输出
 	IIC_SCL = 0;
 	IIC_SDA = 0;//STOP:when CLK is high DATA change form low to high
-	delay_us(4);
-	// IIC_SCL = 1; // ??? 24c32加这个有问题
+	delay_us(1);
+	IIC_SCL = 1;
 	IIC_SDA = 1;//发送I2C总线结束信号
+	delay_us(1);
 }
 
 //等待应答信号到来
@@ -74,24 +75,22 @@ uint8_t IIC_Wait_Ack(void)
 //产生ACK应答
 void IIC_Ack(void)
 {
-	IIC_SCL = 0;
 	SDA_OUT();
 	IIC_SDA = 0;
-	delay_us(4);
+	delay_us(2);
 	IIC_SCL = 1;
-	delay_us(4);
+	delay_us(2);
 	IIC_SCL = 0;
 }
 
 //不产生ACK应答
 void IIC_NAck(void)
 {
-	IIC_SCL = 0;
 	SDA_OUT();
 	IIC_SDA = 1;
-	delay_us(4);
+	delay_us(2);
 	IIC_SCL = 1;
-	delay_us(4);
+	delay_us(2);
 	IIC_SCL = 0;
 }
 
