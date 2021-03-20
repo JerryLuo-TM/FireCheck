@@ -205,10 +205,6 @@ void AT24CXX_Read_Sequence(uint16_t ReadAddr, uint8_t *buf, uint16_t len)
 		} else {
 			*buf++=IIC_Read_Byte(1);
 		}
-		IIC_Start();
-
-		IIC_Send_Byte(AT24CXX_ADDRESS|0x1); //进入接收模式
-		IIC_Wait_Ack();
 	}
 
 	IIC_Stop();

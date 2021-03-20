@@ -1,26 +1,32 @@
 #include "delay.h"
 
-// void delay_us(uint32_t nus)
-// {
-// 	volatile unsigned int i,j;
-// 	for(i=0;i<5;i++)
-// 	{
-// 		for(j=0;j<nus;j++)
-// 		{
-// 			__NOP();__NOP();__NOP();__NOP();__NOP();
-// 		}
-// 	}
-// }
+#if 1
+void delay_us(uint32_t nus)
+{
+	uint32_t i = 0;
+	for(i = 0; i < nus; i++) {
+		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
+		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
+		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
+		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
+		__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
+	}
+}
 
-// void delay_ms(uint32_t nus)
-// {
-// 	volatile unsigned int i;
-// 	for(i=0;i<nus;i++)
-// 	{
-// 		delay_us(1000);
-// 	}
-// }
+void delay_ms(uint32_t nus)
+{
+	volatile unsigned int i;
+	for(i = 0; i < nus; i++) {
+		delay_us(1000);
+	}
+}
 
+void delay_init(void)
+{
+	;
+}	
+
+#else
 static uint8_t  fac_us=0;	//us延时倍乘数
 static uint16_t fac_ms=0;	//ms延时倍乘数,在ucos下,代表每个节拍的ms数
 
@@ -65,7 +71,7 @@ void delay_ms(uint32_t nms)
 	SysTick->VAL =0X00;       					//清空计数器
 }
 
-
+#endif
 
 
 

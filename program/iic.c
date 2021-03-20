@@ -123,17 +123,19 @@ void IIC_Send_Byte(uint8_t txd)
 uint8_t IIC_Read_Byte(unsigned char ack)
 {
 	unsigned char i, receive=0;
+	IIC_SDA = 1;
 	SDA_IN(); //SDA…Ë÷√Œ™ ‰»Î
-    for(i=0; i<8; i++) {
-        IIC_SCL = 0;
+    for(i = 0; i < 8; i++) {
         delay_us(4);
 		IIC_SCL = 1;
+        delay_us(4);
         receive <<= 1;
         if(READ_SDA == 0) {
 			;
 		} else {
 			receive++;
 		}
+		IIC_SCL = 0;
 		delay_us(4);
     }
     if (!ack)

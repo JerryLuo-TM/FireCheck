@@ -2,6 +2,7 @@
 #include "ws2812.h"
 #include "stm32f10x_adc.h"
 #include "ring_buffer.h"
+#include "ds3231.h"
 
 RINGBUFF_T tx_ring;
 RINGBUFF_T rx_ring;
@@ -152,8 +153,9 @@ void demo_task(void *pvParameters)
 		// debug_printf("ADC_IN=%d  V_sys0=%f V_sys1=%f \r\n", ADC_IN, V_sys0, V_sys1);
 		// debug_printf("V_Res = %f Res = %0.5f \r\n", V_Res, Res);
 		// debug_printf2("V_Res = %f Res = %0.5f \r\n", V_Res, Res);
-
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/5);
+		Time_Handle();
+	
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
 	}
 }
 
@@ -373,6 +375,21 @@ int main(void)
 				debug_printf("%d pass w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
 			}
 		}
+	}
+
+	{
+		Time_Typedef RTC_Timer;
+		RTC_Timer.year   = 0x2021; //如果下面那行不打开，这些初始时间均无效	
+		RTC_Timer.month  = 0x03;
+		RTC_Timer.date   = 0x20;
+		RTC_Timer.week   = 0x06;
+		RTC_Timer.hour   = 0x17;
+		RTC_Timer.minute = 0x14;
+		RTC_Timer.second = 0x40;
+
+		DS3231_Time_Init(&RTC_Timer);
+
+		Time_Handle();
 	}
 
 	/* 开启任务调度 */
