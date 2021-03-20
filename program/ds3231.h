@@ -9,31 +9,48 @@
 ******************************************************************************/
 
 typedef struct {
-	char Seconds;
-	char Minutes;
-	char Hour;
-	char Week;// Range 1-7
-	char Date;// Range 1-31
-	char Month;
-	char Year;// Range 0-99
+	uint8_t Seconds;
+	uint8_t Minutes;
+	uint8_t Hour;
+	uint8_t Week;// Range 1-7
+	uint8_t Date;// Range 1-31
+	uint8_t Month;
+	uint8_t Year;// Range 0-99
 } DS3231_DateTime;
 
 typedef struct {
-	char Seconds;
-	char Minutes;
-	char Hour;
-	char DY_DT;//Day;// Range 1-7
-	char Date;// Range 1-31
+	uint8_t Seconds;
+	uint8_t Minutes;
+	uint8_t Hour;
+	uint8_t DY_DT;//Day;// Range 1-7
+	uint8_t Date;// Range 1-31
 } DS3231_Alarm1;
 
 typedef struct {
-	char Minutes;
-	char Hour;
-	char DY_DT;  //Day;// Range 1-7
-	char Date;   // Range 1-31
+	uint8_t Minutes;
+	uint8_t Hour;
+	uint8_t DY_DT;  //Day;// Range 1-7
+	uint8_t Date;   // Range 1-31
 } DS3231_Alarm2;
 
 extern DS3231_DateTime g_DS3231_Time;	//定义时间数据缓存
+
+#define DS3231_FLAG_STATUS_A1F (1 << 0)
+#define DS3231_FLAG_STATUS_A2F (1 << 1)
+
+#define DS3231_FLAG_CONTROL_A1IE (1 << 0)
+#define DS3231_FLAG_CONTROL_A2IE (1 << 1)
+#define DS3231_FLAG_CONTROL_INTCN (1 << 2)
+#define DS3231_FLAG_CONTROL_RS1 (1 << 3)
+#define DS3231_FLAG_CONTROL_RS2 (1 << 4)
+#define DS3231_FLAG_CONTROL_CONV (1 << 5)
+#define DS3231_FLAG_CONTROL_BBSQW (1 << 6)
+#define DS3231_FLAG_CONTROL_EOSC (1 << 7)
+
+#define DS3231_ALARM_NO_MATCH			0x50
+#define DS3231_ALARM_MATCH				0x00
+#define DS3231_ALARM_DAY_MATCH			0x28// DY
+#define DS3231_ALARM_DATE_MATCH			0x00// DT
 
 /******************************************************************************
                                 参数宏定义

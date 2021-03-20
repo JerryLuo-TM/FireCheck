@@ -9,19 +9,6 @@
 #include "ds3231.h"
 #include "AT24CXX.h"
 
-/*
-	// Default setting
-	Time_Typedef RTC_Timer;
-	RTC_Timer.year   = 0x2021;
-	RTC_Timer.month  = 0x03;
-	RTC_Timer.date   = 0x20;
-	RTC_Timer.week   = 0x06;
-	RTC_Timer.hour   = 0x14;
-	RTC_Timer.minute = 0x00;
-	RTC_Timer.second = 0x00;
-	DS3231_Time_Init(&RTC_Timer); 
-*/
-
 /******************************************************************************
 定义相关的变量函数
 ******************************************************************************/
@@ -127,13 +114,20 @@ void DS3231_SetDateTime(DS3231_DateTime *TimeVAL)
 	}
 
 	//时间日历数据
-	Time_Buffer[0] = TimeVAL->Seconds;	//秒
-	Time_Buffer[1] = TimeVAL->Minutes;	//分钟
-	Time_Buffer[2] = TimeVAL->Hour;		//小时
-	Time_Buffer[3] = TimeVAL->Week;		//星期
-	Time_Buffer[4] = TimeVAL->Date;		//日
-	Time_Buffer[5] = TimeVAL->Month;	//月
-	Time_Buffer[6] = TimeVAL->Year;		//年
+	Time_Buffer[0] = DS3231_DecToBCD(TimeVAL->Seconds);		//秒
+	Time_Buffer[1] = DS3231_DecToBCD(TimeVAL->Minutes);		//分钟
+	Time_Buffer[2] = DS3231_DecToBCD(TimeVAL->Hour);		//小时
+	Time_Buffer[3] = DS3231_DecToBCD(TimeVAL->Week);		//星期
+	Time_Buffer[4] = DS3231_DecToBCD(TimeVAL->Date);		//日
+	Time_Buffer[5] = DS3231_DecToBCD(TimeVAL->Month);		//月
+	Time_Buffer[6] = DS3231_DecToBCD(TimeVAL->Year);		//年
+
+	debug_printf("\r\n");
+	for (int i=0;i<7;i++) {
+		debug_printf("%x ", Time_Buffer[i]);
+	}
+	debug_printf("\r\n");
+
 	DS3231_Operate_Register(Address_second, Time_Buffer, 7, 0);	//从秒（0x00）开始写入7组数据
 
 	DS3231_Write_Byte(Address_control, OSC_Enable);
@@ -144,15 +138,18 @@ void DS3231_GetDateTime(DS3231_DateTime *TimeVAL)
 {
 	uint8_t Time_Register[8];	//定义时间缓存
 
+	if(TimeVAL == NULL) {
+		return ;
+	}
+
 	DS3231_Operate_Register(Address_second, Time_Register, 7, 1);	//从秒地址（0x00）开始读取时间日历数据
-	/******将数据复制到时间结构体中，方便后面程序调用******/
-	g_DS3231_Time.Seconds = Time_Register[0] ;//& Shield_secondBit;	//秒数据
-	g_DS3231_Time.Minutes = Time_Register[1] ;//& Shield_minuteBit;	//分钟数据
-	g_DS3231_Time.Hour    = Time_Register[2] ;//& Shield_hourBit;	//小时数据
-	g_DS3231_Time.Week    = Time_Register[3] ;//& Shield_weekBit;	//星期数据
-	g_DS3231_Time.Date    = Time_Register[4] ;//& Shield_dateBit;	//日数据
-	g_DS3231_Time.Month   = Time_Register[5] ;//& Shield_monthBit;	//月数据
-	g_DS3231_Time.Year    = Time_Register[6];					//年数据
+	g_DS3231_Time.Seconds = DS3231_BCDToDec(Time_Register[0]);	//秒数据
+	g_DS3231_Time.Minutes = DS3231_BCDToDec(Time_Register[1]);	//分钟数据
+	g_DS3231_Time.Hour    = DS3231_BCDToDec(Time_Register[2]);  //小时数据
+	g_DS3231_Time.Week    = DS3231_BCDToDec(Time_Register[3]);  //星期数据
+	g_DS3231_Time.Date    = DS3231_BCDToDec(Time_Register[4]);  //日数据
+	g_DS3231_Time.Month   = DS3231_BCDToDec(Time_Register[5]);	//月数据
+	g_DS3231_Time.Year    = DS3231_BCDToDec(Time_Register[6]);  //年数据
 
 	memcpy((uint8_t*)TimeVAL, (uint8_t*)&g_DS3231_Time, sizeof(DS3231_DateTime));
 }
@@ -253,7 +250,7 @@ void Time_Handle(void)
 
 	temputer = DS3231_Read_Temp();
 
-	debug_printf("20%x/%x/%x  %x:%x:%x w:%d temp:%0.2f ℃ \r\n",
+	debug_printf("20%02d/%d/%d  %d:%d:%d w:%d temp:%0.2f ℃ \r\n",
 			ds3231_time.Year,
 			ds3231_time.Month,
 			ds3231_time.Date,

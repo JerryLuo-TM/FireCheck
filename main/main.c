@@ -329,6 +329,21 @@ int main(void)
 	/* 检查DS3231 是否正常 */
 	DS3231_Check();
 
+#if 0
+	{
+		// 设定时间
+		DS3231_DateTime time_set;
+		time_set.Seconds = 00;
+		time_set.Minutes = 19;
+		time_set.Hour    = 1;
+		time_set.Week    = 7;
+		time_set.Date    = 21;
+		time_set.Month   = 3;
+		time_set.Year    = 21;
+		DS3231_SetDateTime(&time_set);
+	}
+#endif
+
 	while (error_try < 3) {
 		if (AT24CXX_Check() == 1) {
 			debug_printf("24CXX Check Failed! \r\n");
