@@ -30,13 +30,15 @@ void AT24CXX_Init(void)
 uint8_t AT24CXX_Check(void)
 {
 	uint8_t temp;
+
 	temp = AT24CXX_ReadOneByte(255);//避免每次开机都写AT24CXX
-	if(temp == 0X45) {
+
+	if(temp == 0XAA) {
 		return 0;
-	} else { //排除第一次初始化的情况
-		AT24CXX_WriteOneByte(255,0X45);
+	} else {
+		AT24CXX_WriteOneByte(255,0XAA);
 		temp = AT24CXX_ReadOneByte(255);
-		if(temp == 0X45) {
+		if(temp == 0XAA) {
 			return 0;
 		}
 	}
@@ -153,6 +155,9 @@ void AT24CXX_Write(uint16_t WriteAddr,uint8_t *pBuffer,uint16_t NumToWrite)
 	}
 }
 
+//按页写入数据，地址必须32byte align
+//单词写入数据量32byte 整数倍或小于32byte
+//AT24CXX_Write_Page(0x20, &write_buf[32], 32);
 void AT24CXX_Write_Page(uint16_t WriteAddr, uint8_t *buf, uint16_t len)
 {
 	IIC_Start();

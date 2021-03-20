@@ -296,6 +296,8 @@ void save_flash_parameter(void)
 
 int main(void)
 {
+	uint32_t error_try;
+
 	// Stm32_Clock_Init(6); //系统时钟设置  12Mhz * 6 = 72MHZ
 	Stm32_Clock_Init(9); //系统时钟设置  8Mhz * 9 = 72MHZ
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组4
@@ -316,7 +318,7 @@ int main(void)
 	Adc_Init();
 
 	/* 从flash中加载计算参数 */
-	//load_flash_parameter();
+	load_flash_parameter();
 
 	/* 创建task */
 	create_app_task();
@@ -324,72 +326,18 @@ int main(void)
 	/* I2C 24CXX 初始化 */
 	AT24CXX_Init();
 
-	while (AT24CXX_Check() == 1) { //检测不到24c02
-		debug_printf("24C02 Check Failed! \r\n");
-		delay_ms(500);
-		debug_printf("Please Check!      \r\n\r\n");
-		delay_ms(500);
-	}
+	/* 检查DS3231 是否正常 */
+	DS3231_Check();
 
-	{
-		uint8_t write_buf[256];
-		uint8_t read_buf[256];
-		for (int i = 0; i < 256; i++) {
-			write_buf[i] = i;
-			read_buf[i] = 0;
+	while (error_try < 3) {
+		if (AT24CXX_Check() == 1) {
+			debug_printf("24CXX Check Failed! \r\n");
+			delay_ms(500);
+		} else {
+			debug_printf("24CXX Check Pass! \r\n");
+			break;
 		}
-
-		AT24CXX_Write(0, write_buf, 64);
-		// AT24CXX_Write_Page_Len(0, write_buf, 256);
-		AT24CXX_Read(0, read_buf, 64);
-		// AT24CXX_Read_Sequence_Len(0, read_buf, 16);
-
-		for (int i = 0; i < 16; i++) {
-			if (write_buf[i] != read_buf[i]) {
-				debug_printf("%d error w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
-			} else {
-				debug_printf("%d pass w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
-			}
-		}
-	}
-
-	debug_printf("\r\n");
-	{
-		uint8_t write_buf[256];
-		uint8_t read_buf[256];
-		for (int i = 0; i < 256; i++) {
-			write_buf[i] = i+2;
-			read_buf[i] = 0;
-		}
-
-		AT24CXX_Write_Page(0, write_buf, 32);
-		AT24CXX_Write_Page(0x20, &write_buf[32], 32);
-		AT24CXX_Write_Page(0x40, &write_buf[64], 32);
-		AT24CXX_Write_Page(0x60, &write_buf[96], 32);
-		AT24CXX_Read_Sequence(0, read_buf, 128);
-
-		for (int i = 0; i < 128; i++) {
-			if (write_buf[i] != read_buf[i]) {
-				debug_printf("%d error w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
-			} else {
-				debug_printf("%d pass w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
-			}
-		}
-	}
-
-	{
-		Time_Typedef RTC_Timer;
-		RTC_Timer.year   = 0x2021; //如果下面那行不打开，这些初始时间均无效	
-		RTC_Timer.month  = 0x03;
-		RTC_Timer.date   = 0x20;
-		RTC_Timer.week   = 0x06;
-		RTC_Timer.hour   = 0x17;
-		RTC_Timer.minute = 0x14;
-		RTC_Timer.second = 0x40;
-
-		DS3231_Time_Init(&RTC_Timer);
-
-		Time_Handle();
+		error_try += 1;
 	}
 
 	/* 开启任务调度 */

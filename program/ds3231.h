@@ -5,58 +5,45 @@
 #include "sys.h"
 
 /******************************************************************************
-* @ File name --> ds3231.c
-* @ Author    --> By@ Sam Chan
-* @ Version   --> V1.0
-* @ Date      --> 02 - 01 - 2014
-* @ Brief     --> 高精度始终芯片DS3231驱动函数
-*
-* @ Copyright (C) 20**
-* @ All rights reserved
-*******************************************************************************
-*
-*                                  File Update
-* @ Version   --> V1.
-* @ Author    -->
-* @ Date      -->
-* @ Revise    -->
-*
+                        DS3231日历时钟寄存器结构定义
 ******************************************************************************/
 
+typedef struct {
+	char Seconds;
+	char Minutes;
+	char Hour;
+	char Week;// Range 1-7
+	char Date;// Range 1-31
+	char Month;
+	char Year;// Range 0-99
+} DS3231_DateTime;
+
+typedef struct {
+	char Seconds;
+	char Minutes;
+	char Hour;
+	char DY_DT;//Day;// Range 1-7
+	char Date;// Range 1-31
+} DS3231_Alarm1;
+
+typedef struct {
+	char Minutes;
+	char Hour;
+	char DY_DT;  //Day;// Range 1-7
+	char Date;   // Range 1-31
+} DS3231_Alarm2;
+
+extern DS3231_DateTime g_DS3231_Time;	//定义时间数据缓存
 
 /******************************************************************************
-                        DS3231日历时钟寄存器结构定义                          
+                                参数宏定义
 ******************************************************************************/
-typedef struct
-{			   
-	uint16_t year;//年
-	uint8_t month;//月
-	uint8_t week;//星期
-	uint8_t date;//日
-	int hour;//小时
-	int minute;//分钟
-	int second;//秒钟
-}Time_Typedef;
-
-extern Time_Typedef TimeValue;	//定义时间数据缓存
-extern uint8_t Time_Buffer[7];	//时间日历数据缓存
-
-extern uint8_t Display_Time[8];	//显示时间格式
-extern uint8_t Display_Date[13];	//显示日期格式
-
-/******************************************************************************
-                                参数宏定义                       
-******************************************************************************/
-
-#define DS3231_YEARDATA                  (uint16_t)0x2000	//年结构，如果是19xx年、21xx年的话请修改这个数值即可
-
-#define DS3231_ADD_BASS					0xd0	//器件基地址
-
+#define DS3231_ADD_BASS					0xD0	//器件基地址
 #define DS3231_Write_ADD				(DS3231_ADD_BASS | 0x00)	//写DS3231
 #define DS3231_Read_ADD					(DS3231_ADD_BASS | 0x01)	//读DS3231
 
 /******************************************************************************
-                            参数寄存器地址宏定义                    
+                            参数寄存器地址宏定义
 ******************************************************************************/
 
 #define Address_second					0x00	//秒
@@ -70,34 +57,24 @@ extern uint8_t Display_Date[13];	//显示日期格式
 #define Address_second_Alarm1			0x07	//秒闹铃
 #define Address_minute_Alarm1			0x08	//分闹铃
 #define Address_hour_Alarm1				0x09	//时闹铃
-#define Address_week_Alarm1				0x0a	//日闹铃、星期闹铃
+#define Address_week_Alarm1				0x0A	//日闹铃、星期闹铃
 
-#define Address_minute_Alarm2			0x0b	//分闹铃
-#define Address_hour_Alarm2				0x0c	//时闹铃
-#define Address_week_Alarm2				0x0d	//日闹铃、星期闹铃
+#define Address_minute_Alarm2			0x0B	//分闹铃
+#define Address_hour_Alarm2				0x0C	//时闹铃
+#define Address_week_Alarm2				0x0D	//日闹铃、星期闹铃
 
 
-#define Address_control					0x0e	//控制
-#define Address_control_status			0x0f	//控制和状态标志
+#define Address_control					0x0E	//控制
+#define Address_control_status			0x0F	//控制和状态标志
 
 #define Address_offset					0x10	//Aging Offset
 
 #define Address_temp_MSB				0x11	//温度高8位
 #define Address_temp_LSB				0x12	//温度低8位
 
-/******************************************************************************
-                        时间参数屏蔽无效位宏定义                 
-******************************************************************************/
-
-#define Shield_secondBit			0x7f
-#define Shield_minuteBit			0x7f
-#define Shield_hourBit				0x3f
-#define Shield_weekBit				0x07
-#define Shield_dateBit				0x3f
-#define Shield_monthBit				0x1f
 
 /******************************************************************************
-                                参数命令定义                      
+                                参数命令定义
 ******************************************************************************/
 
 //小时寄存器
@@ -160,25 +137,33 @@ extern uint8_t Display_Date[13];	//显示日期格式
 #define Clear_A1IE_Flag				(0<<0)	//清除闹铃2中断标志
 
 /******************************************************************************
-                                外部功能函数                      
+                                外部功能函数
 ******************************************************************************/
 
-uint8_t DS3231_Check(void);	//DS3231检测函数
 
-void DS3231_Write_Byte(uint8_t REG_ADD,uint8_t dat);	//DS3231某寄存器写入一个字节数据
+void DS3231_Write_Byte(uint8_t REG_ADD, uint8_t dat);
+uint8_t DS3231_Read_Byte(uint8_t REG_ADD);
+void DS3231_Operate_Register(uint8_t REG_ADD, uint8_t *pBuff, uint8_t num, uint8_t mode);
 
-uint8_t DS3231_Read_Byte(uint8_t REG_ADD);	//DS3231某寄存器读取一个字节数据
+uint8_t DS3231_Check(void);
+void DS3231_SetDateTime(DS3231_DateTime *TimeVAL);
+void DS3231_GetDateTime(DS3231_DateTime *TimeVAL);
+void DS3231_SetAlarm1(DS3231_Alarm1 *DS3231_WriteAlarm1);
+void DS3231_GetAlarm1(DS3231_Alarm1 *DS3231_ReadAlarm1);
+void DS3231_SetAlarm2(DS3231_Alarm2 *DS3231_WriteAlarm2);
+void DS3231_GetAlarm2(DS3231_Alarm2 *DS3231_ReadAlarm2);
+uint8_t DS3231_GetFlag(uint8_t DS3231_FLAG_STATUS);
+void DS3231_ClearFlag(uint8_t DS3231_FLAG_STATUS);
+uint8_t DS3231_GetCotrolRegister(void);
+void DS3231_SetCtrlRegister(uint8_t DS3231_FLAG_CONTROL);
 
-void DS3231_ReadWrite_Time(uint8_t mode);	//DS3231读取或者写入时间信息
+uint8_t DS3231_DecToBCD(uint8_t value);
+uint8_t DS3231_BCDToDec(uint8_t value);
 
-void DS3231_Time_Init(Time_Typedef *TimeVAL);	//时间日历初始化
+float DS3231_Read_Temp(void);	//读取芯片温度寄存器
+void Time_Handle(void);			//时间日历数据处理函数
 
-void Time_Handle(void);	//时间日历数据处理函数
 
-
-void DS3231_Read_Temp(uint8_t *Temp);	//读取芯片温度寄存器
-extern int second_last;
-extern int sec_flag;
 
 #endif
 
