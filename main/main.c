@@ -330,31 +330,50 @@ int main(void)
 	}
 
 	{
-		uint8_t buffer[256];
+		uint8_t write_buf[256];
 		uint8_t read_buf[256];
 		for (int i = 0; i < 256; i++) {
-			buffer[i] = 0x5A;
+			write_buf[i] = i;
 			read_buf[i] = 0;
 		}
 
-		AT24CXX_Write(0, buffer, 256);
-		AT24CXX_Read(0, read_buf, 256);
-		// AT24CXX_Read_Byte_Len(0, read_buf, 256);
+		AT24CXX_Write(0, write_buf, 64);
+		// AT24CXX_Write_Page_Len(0, write_buf, 256);
+		AT24CXX_Read(0, read_buf, 64);
+		// AT24CXX_Read_Sequence_Len(0, read_buf, 16);
 
-		for (int i = 0; i < 256; i++) {
-			if (buffer[i] != read_buf[i]) {
-				debug_printf("%d error w:%x r:%x \r\n", i, buffer[i], read_buf[i]);
+		for (int i = 0; i < 16; i++) {
+			if (write_buf[i] != read_buf[i]) {
+				debug_printf("%d error w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
 			} else {
-				debug_printf("%d pass w:%x r:%x \r\n", i, buffer[i], read_buf[i]);
+				debug_printf("%d pass w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
 			}
 		}
-
-		uint32_t temp;
-		AT24CXX_WriteOneByte(4095,0X36);
-		temp=AT24CXX_ReadOneByte(4095);
-		debug_printf("4M %x    \r\n", temp);
 	}
 
+	debug_printf("\r\n");
+	{
+		uint8_t write_buf[256];
+		uint8_t read_buf[256];
+		for (int i = 0; i < 256; i++) {
+			write_buf[i] = i+2;
+			read_buf[i] = 0;
+		}
+
+		AT24CXX_Write_Page(0, write_buf, 32);
+		AT24CXX_Write_Page(0x20, &write_buf[32], 32);
+		AT24CXX_Write_Page(0x40, &write_buf[64], 32);
+		AT24CXX_Write_Page(0x60, &write_buf[96], 32);
+		AT24CXX_Read_Sequence(0, read_buf, 128);
+
+		for (int i = 0; i < 128; i++) {
+			if (write_buf[i] != read_buf[i]) {
+				debug_printf("%d error w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
+			} else {
+				debug_printf("%d pass w:%x r:%x \r\n", i, write_buf[i], read_buf[i]);
+			}
+		}
+	}
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();
