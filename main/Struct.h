@@ -13,25 +13,15 @@
 
 #include "delay.h"
 #include "LED.h"
-#include "AT24CXX.h"
-#include "stmflash.h"
 
-//操作系统相关头文件
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h" 
 #include "semphr.h"
 
-//设置FLASH 保存地址
-//(必须为偶数，且其值要大于本代码所占用FLASH的大小+0X08000000)
-//64K 开始的位置
-#define FLASH_SAVE_ADDR   0x08010000   //频率参数
+extern RINGBUFF_T uart1_rx_ring;
 
-extern SemaphoreHandle_t xSemaphore_rx;
-
-extern RINGBUFF_T tx_ring;
-extern RINGBUFF_T rx_ring;
-
+extern SemaphoreHandle_t xSemaphore_uart1_rx;
 
 typedef union
 {
