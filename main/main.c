@@ -46,7 +46,8 @@ void race_task(void *pvParameters)
 				} else {
 					TIM_SetCompare1(TIM2, 1000 + (uint32_t)receive_buffer[0] * 10);
 				}
-				debug_printf("len[%d] value[%d]\r\n", receive_length, receive_buffer[0]);
+				debug_printf("len[%d] value[%d] value[%d] value[%d]\r\n", receive_length, 
+											receive_buffer[0],receive_buffer[1],receive_buffer[2]);
 				// uart1_send_string(receive_buffer, receive_length);
 			}
 		}
