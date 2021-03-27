@@ -53,10 +53,8 @@ void HardFault_Handler(void)
   debug_printf("HardFault_Handler \r\n");
   while (1) {
     LED_R = 1;
-    LED_B = 1;
     delay_ms(300);
     LED_R = 0;
-    LED_B = 1;
     delay_ms(300);
   }
 }

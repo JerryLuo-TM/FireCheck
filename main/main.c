@@ -8,19 +8,25 @@ SemaphoreHandle_t xSemaphore_uart1_rx;
 
 void demo_task(void *pvParameters)
 {
+	uint8_t key_num;
 	uint32_t count;
 
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	while (1)
 	{
 		if (++count%2 == 0) {
-			LED_1 = 1; LED_G = 1;;
+			LED_B = 1;
+			LED_TEST = 1;
 		} else {
-			LED_1 = 0; LED_G = 0;
+			LED_B = 0;
+			LED_TEST = 0;
 		}
 
-		debug_printf("Hello world\r\n");
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/1);
+		// key_num = KEY_Scan(0);
+		// debug_printf("Hello world\r\n");
+
+	
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/2);
 	}
 }
 
@@ -74,6 +80,8 @@ int main(void)
 	/* 延时初始化 */
 	delay_init();
 
+	KEY_Init();
+
 	/* 初始化LED灯 */
 	LED_init();
 
@@ -85,6 +93,8 @@ int main(void)
 
 	/* 创建task */
 	create_app_task();
+
+	AMG8833_Init();
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();

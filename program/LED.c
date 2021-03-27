@@ -12,33 +12,22 @@ void LED_init(void)
 
 	//PB8
 	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_OD;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-	//PB12
-	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_12;
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-	//PB13
-	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_13;
+	//PB12 13 14
+	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14;
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-	//PB14
-	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_14;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-	LED_1 = 1;
+	LED_TEST = 0;
 
 	LED_R = 0;
-	LED_G = 0;
 	LED_B = 0;
+
+	LASER_Switch = 0;
 }
 
 

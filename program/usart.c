@@ -209,11 +209,11 @@ void USART1_IRQHandler(void) //串口1中断服务程序
 	if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET) {
 		Res = USART1->SR;
 		Res = USART1->DR;
-		DMA_Cmd(DMA1_Channel4, DISABLE); //关闭USART1
-		count = sizeof(g_uart1_dma_rx_buffer) - DMA_GetCurrDataCounter(DMA1_Channel4);
+		DMA_Cmd(DMA1_Channel5, DISABLE); //关闭USART1
+		count = sizeof(g_uart1_dma_rx_buffer) - DMA_GetCurrDataCounter(DMA1_Channel5);
 		RingBuffer_InsertMult(&uart1_rx_ring, g_uart1_dma_rx_buffer, count);
-		DMA_SetCurrDataCounter(DMA1_Channel4, sizeof(g_uart1_dma_rx_buffer));
-		DMA_Cmd(DMA1_Channel4, ENABLE); //启动USART1
+		DMA_SetCurrDataCounter(DMA1_Channel5, sizeof(g_uart1_dma_rx_buffer));
+		DMA_Cmd(DMA1_Channel5, ENABLE); //启动USART1
 		if (xSemaphore_uart1_rx != NULL) {
 			xSemaphoreGiveFromISR( xSemaphore_uart1_rx, &xHigherPriorityTaskWoken );
 			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);

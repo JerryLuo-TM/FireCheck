@@ -12,15 +12,19 @@
 #include "iic.h"
 
 #include "delay.h"
-#include "LED.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h" 
 #include "semphr.h"
 
-extern RINGBUFF_T uart1_rx_ring;
+#include "amg8833.h"
+#include "tft.h"
+#include "key.h"
+#include "LED.h"
 
+
+extern RINGBUFF_T uart1_rx_ring;
 extern SemaphoreHandle_t xSemaphore_uart1_rx;
 
 typedef union

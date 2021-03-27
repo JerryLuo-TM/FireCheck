@@ -3,11 +3,12 @@
 
 #include "sys.h"  
 
-#define LED_1  PBout(8)
+#define LED_TEST  PBout(8)
 
+#define LED_R  PBout(13)
 #define LED_B  PBout(12)
-#define LED_G  PBout(13)
-#define LED_R  PBout(14)
+
+#define LASER_Switch  PBout(14)
 
 void LED_init(void);
 
