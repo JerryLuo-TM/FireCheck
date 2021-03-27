@@ -22,6 +22,7 @@
 #include "tft.h"
 #include "key.h"
 #include "LED.h"
+#include "pwm.h"
 
 
 extern RINGBUFF_T uart1_rx_ring;

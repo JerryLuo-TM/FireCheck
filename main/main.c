@@ -41,7 +41,13 @@ void race_task(void *pvParameters)
 			if (receive_length > 0) {
 				memset(receive_buffer, 0, sizeof(receive_buffer));
 				RingBuffer_PopMult(&uart1_rx_ring, &receive_buffer[0], receive_length);
-				uart1_send_string(receive_buffer, receive_length);
+				if (receive_buffer[0] > 100) {
+					TIM_SetCompare1(TIM2, 2000);
+				} else {
+					TIM_SetCompare1(TIM2, 1000 + (uint32_t)receive_buffer[0] * 10);
+				}
+				debug_printf("len[%d] value[%d]\r\n", receive_length, receive_buffer[0]);
+				// uart1_send_string(receive_buffer, receive_length);
 			}
 		}
 	}
@@ -95,6 +101,10 @@ int main(void)
 	create_app_task();
 
 	AMG8833_Init();
+
+	TIM2_PWM_Init(2499, 71);
+	TIM_SetCompare1(TIM2, 1000);
+	TIM_SetCompare2(TIM2, 1000);
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();
