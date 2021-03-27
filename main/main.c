@@ -8,7 +8,7 @@ SemaphoreHandle_t xSemaphore_uart1_rx;
 
 void demo_task(void *pvParameters)
 {
-	uint8_t key_num;
+	// uint8_t key_num;
 	uint32_t count;
 
 	TickType_t xLastWakeTime = xTaskGetTickCount();
