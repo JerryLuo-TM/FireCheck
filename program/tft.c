@@ -82,7 +82,7 @@ void LCD_WR_REG(uint32_t i)
 }
 
 void LCD_WR_DATA(uint32_t i)
-{	
+{
 	LCD_CS = 0;
 	LCD_RS = 1; //Êý¾Ý
 	SendDataSPI(i);

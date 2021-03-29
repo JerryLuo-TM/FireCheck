@@ -14,8 +14,8 @@
 #define LCD_BL      PBout(10)
 
 #define WHITE       0xFFFF
-#define BLACK      	0x0000	  
-#define BLUE       	0x001F  
+#define BLACK      	0x0000
+#define BLUE       	0x001F
 #define BRED        0XF81F
 #define GRED        0XFFE0
 #define GBLUE       0X07FF
@@ -28,7 +28,7 @@
 #define BRRED       0XFC07 //棕红色
 #define GRAY        0X8430 //灰色
 
-void LCD_GPIOInit(void);	 
+void LCD_GPIOInit(void);
 void LCD_Init(void);
 void DispColor(uint32_t color);
 void DispFrame(void);

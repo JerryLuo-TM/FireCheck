@@ -35,11 +35,11 @@ uint8_t AMG8833_Read_Byte(uint8_t REG_ADD)
 	IIC_Send_Byte(REG_ADD);
 	IIC_Wait_Ack();
 
-	IIC_Start();					//重启总线
-	IIC_Send_Byte(AMG8833_Read_ADD);	//发送读取命令
+	IIC_Start();
+	IIC_Send_Byte(AMG8833_Read_ADD);
 	IIC_Wait_Ack();
 
-	ReData = IIC_Read_Byte(0);	//读取数据 非应答信号结束
+	ReData = IIC_Read_Byte(0);
 
 	IIC_Stop();
 
@@ -53,14 +53,14 @@ void AMG8833_Write_Buf_Len(uint8_t REG_ADD, uint8_t *pBuff, uint8_t len)
 	IIC_Start();
 
 	IIC_Send_Byte(AMG8833_Write_ADD);
-	IIC_Wait_Ack(); //发送写命令并检查应答位
+	IIC_Wait_Ack();
 
-	IIC_Send_Byte(REG_ADD);	//定位起始寄存器地址
-	IIC_Wait_Ack(); //发送写命令并检查应答位
+	IIC_Send_Byte(REG_ADD);
+	IIC_Wait_Ack();
 
 	for(i = 0;i < len; i++) {
-		IIC_Send_Byte(*pBuff++);	//写入数据
-		IIC_Wait_Ack(); //发送写命令并检查应答位
+		IIC_Send_Byte(*pBuff++);
+		IIC_Wait_Ack();
 	}
 
 	IIC_Stop();
@@ -73,20 +73,20 @@ void AMG8833_Read_Buf_Len(uint8_t REG_ADD, uint8_t *pBuff, uint8_t len)
 	IIC_Start();
 
 	IIC_Send_Byte(AMG8833_Write_ADD);
-	IIC_Wait_Ack(); //发送写命令并检查应答位
+	IIC_Wait_Ack();
 
-	IIC_Send_Byte(REG_ADD);	//定位起始寄存器地址
-	IIC_Wait_Ack(); //发送写命令并检查应答位
+	IIC_Send_Byte(REG_ADD);
+	IIC_Wait_Ack();
 
-	IIC_Start();	//重启总线
-	IIC_Send_Byte(AMG8833_Read_ADD);	//发送读取命令
-	IIC_Wait_Ack(); //发送写命令并检查应答位
+	IIC_Start();
+	IIC_Send_Byte(AMG8833_Read_ADD);
+	IIC_Wait_Ack();
 
 	for(i = 0; i < len; i++) {
 		if(i == (len - 1))	{
-			*pBuff++ = IIC_Read_Byte(0);	//读取数据 发送非应答信号
+			*pBuff++ = IIC_Read_Byte(0);
 		} else {
-			*pBuff++ = IIC_Read_Byte(1);	//读取数据 发送应答信号
+			*pBuff++ = IIC_Read_Byte(1);
 		}
 	}
 	IIC_Stop();
@@ -104,12 +104,12 @@ void AMG8833_Init(void)
 	AMG8833_Write_Byte(0x00, 0x00);  // normal
 	/* reset reg */
 	AMG8833_Write_Byte(0x01, 0x3F);  // reset
-	/* 设定帧率 0: 10fps 1: 1fps */
+	/* config freq 0: 10fps 1: 1fps */
 	AMG8833_Write_Byte(0x02, 0x00);  // 10 fps
-	/* 设置中断 */
+	/* config interrupt */
 	// AMG8833_Write_Byte(0x03, 0x00);
 
-	/* 0x80 ~ 0xFF 温度点输出 0x81(H) 0x80(L) */
+	/* 0x80 ~ 0xFF 0x81(H) 0x80(L) */
 }
 
 void AMG8833_ShutDown(void)
@@ -135,9 +135,7 @@ void AMG8833_ReadPixels(float *buf, uint8_t size)
 	AMG8833_Read_Buf_Len(0x80, rawArray, 128);
 
 	for(i = 0; i < size; i++) {
-		uint8_t pos = i << 1;
-		recast = ((uint16_t)rawArray[pos + 1] << 8) | ((uint16_t)rawArray[pos]);
-
+		recast = ((uint16_t)rawArray[(i * 2) + 1] << 8) | ((uint16_t)rawArray[i * 2]);
 		converted = SignedMag12ToFloat(recast) * 0.25f;
 		buf[i] = converted;
 	}

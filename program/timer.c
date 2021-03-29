@@ -36,15 +36,13 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				//IRQ通道被使能
 	NVIC_Init(&NVIC_InitStructure);	//根据NVIC_InitStruct中指定的参数初始化外设NVIC寄存器
 
-	TIM_Cmd(TIM3, ENABLE);	//使能TIMx外设
+	TIM_Cmd(TIM3, ENABLE);
 }
 
-//时间戳刷新中断  优先级最高   100us中断一次
-void TIM3_IRQHandler(void)   //TIM3中断
+// 100us
+void TIM3_IRQHandler(void)
 {
-	//检查指定的TIM中断发生与否:TIM 中断源
 	if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET) {
-		//清除TIMx的中断待处理位:TIM 中断源
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
 		g_timestamp += 100ull;
 	}

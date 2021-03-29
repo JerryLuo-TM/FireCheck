@@ -1,7 +1,7 @@
 #ifndef _LED_H_
 #define _LED_H_
 
-#include "sys.h"  
+#include "sys.h"
 
 #define LED_TEST  PBout(8)
 

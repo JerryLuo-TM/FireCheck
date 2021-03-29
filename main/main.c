@@ -1,6 +1,6 @@
 #include "Struct.h"
 
-/* uart2 串口环形缓冲 */
+/* uart1 ring buffer array */
 RINGBUFF_T uart1_rx_ring;
 uint8_t uart1_rx_ring_buffer[256] __attribute__ ((aligned (4)));
 
@@ -8,9 +8,10 @@ SemaphoreHandle_t xSemaphore_uart1_rx;
 
 void demo_task(void *pvParameters)
 {
-	// uint8_t key_num;
-	uint32_t count;
-
+	uint8_t key_num;
+	uint32_t count, max_index, i, j;
+	float receive_buffer[8][8];
+	float line_max[8];
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	while (1)
 	{
@@ -22,10 +23,31 @@ void demo_task(void *pvParameters)
 			LED_TEST = 0;
 		}
 
-		// key_num = KEY_Scan(0);
-		// debug_printf("Hello world\r\n");
+		key_num = KEY_Scan(0);
+		if (key_num != 0) {
+			debug_printf("Press key = %d \r\n", key_num);
+		}
 
-	
+		AMG8833_ReadPixels((float*)&receive_buffer[0][0], 64);
+
+		for (i = 0; i < 8; i++) {
+			line_max[i] = receive_buffer[i][0];
+			for (j = 0; j < 8; j++) {
+				if (line_max[i] < receive_buffer[i][j]) {
+					line_max[i] = receive_buffer[i][j];
+				}
+			}
+		}
+
+		max_index = 0;
+		for (i = 0; i < 8 ; i++) {
+			if (line_max[i] > line_max[max_index]) {
+				max_index = i;
+			}
+		}
+
+		TIM_SetCompare1(TIM2, 1000 + (max_index * 100));
+
 		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/2);
 	}
 }
@@ -46,7 +68,7 @@ void race_task(void *pvParameters)
 				} else {
 					TIM_SetCompare1(TIM2, 1000 + (uint32_t)receive_buffer[0] * 10);
 				}
-				debug_printf("len[%d] value[%d] value[%d] value[%d]\r\n", receive_length, 
+				debug_printf("len[%d] value[%d] value[%d] value[%d]\r\n", receive_length,
 											receive_buffer[0],receive_buffer[1],receive_buffer[2]);
 				// uart1_send_string(receive_buffer, receive_length);
 			}
@@ -55,14 +77,14 @@ void race_task(void *pvParameters)
 }
 
 
-//用于创建任务的任务
 void create_app_task(void)
 {
+	/* uart1 rx ring buffer init */
 	RingBuffer_Init(&uart1_rx_ring, uart1_rx_ring_buffer, 1, sizeof(uart1_rx_ring_buffer));
 
 	xSemaphore_uart1_rx = xSemaphoreCreateBinary();
 
-	//创建demo task
+	//create demo task
     xTaskCreate((TaskFunction_t )demo_task,
                 (const char*    )"demo_task",
                 (uint16_t       )4096/sizeof(StackType_t),
@@ -70,7 +92,7 @@ void create_app_task(void)
                 (UBaseType_t    )3,
                 (TaskHandle_t*  )NULL);
 
-	//创建demo task
+	//create demo task
     xTaskCreate((TaskFunction_t )race_task,
                 (const char*    )"race_task",
                 (uint16_t       )2048/sizeof(StackType_t),
@@ -81,24 +103,24 @@ void create_app_task(void)
 
 int main(void)
 {
-	Stm32_Clock_Init(9); //系统时钟设置  8Mhz * 9 = 72MHZ
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组4
+	Stm32_Clock_Init(9); //8Mhz * 9 = 72M
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组
 
-	/* 延时初始化 */
+	/* Delay Init */
 	delay_init();
 
 	KEY_Init();
 
-	/* 初始化LED灯 */
+	/* LED Init */
 	LED_init();
 
-	/* 初始化串口 */
-	UART1_Init(921600); //总线时钟：72Mhz
+	/* UART1 INIT */
+	UART1_Init(921600); //APB2 peripheral = 72Mhz
 
-	/* 10khz的计数频率，中断一次  100us一次 */
+	/* Timestamp timer init @100us*/
 	TIM3_Int_Init(999,7199);
 
-	/* 创建task */
+	/* create app task */
 	create_app_task();
 
 	AMG8833_Init();

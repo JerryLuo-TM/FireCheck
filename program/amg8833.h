@@ -5,14 +5,14 @@
 #include "sys.h"
 
 /******************************************************************************
-                                参数宏定义
+                                define
 ******************************************************************************/
-#define AMG8833_ADD_BASS		0xD2	//器件基地址
-#define AMG8833_Write_ADD		(AMG8833_ADD_BASS | 0x00)	//写
-#define AMG8833_Read_ADD		(AMG8833_ADD_BASS | 0x01)	//读
+#define AMG8833_ADD_BASS		0xD2	//address
+#define AMG8833_Write_ADD		(AMG8833_ADD_BASS | 0x00)	//write
+#define AMG8833_Read_ADD		(AMG8833_ADD_BASS | 0x01)	//read
 
 #define SIZEx5 5
-#define SIZEx8 8  //插值数量选择
+#define SIZEx8 8
 
 #define Draw_Size SIZEx8
 

@@ -2,14 +2,13 @@
 #include "sys.h"
 #include "delay.h"
 
-//按键初始化函数
-void KEY_Init(void) //IO初始化
+void KEY_Init(void) 
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_13 | GPIO_Pin_14;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; //设置成上拉输入
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	GPIO_SetBits(GPIOC,GPIO_Pin_13|GPIO_Pin_14);

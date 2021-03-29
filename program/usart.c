@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include "ring_buffer.h"
 
-uint8_t g_uart1_dma_tx_buffer[256] __attribute__ ((aligned (4)));
+uint8_t g_uart1_dma_tx_buffer[256 + 64] __attribute__ ((aligned (4)));
 uint8_t g_uart1_dma_rx_buffer[64] __attribute__ ((aligned (4)));
 
 volatile bool g_uart1_tx_is_transfer = false;
@@ -185,7 +185,7 @@ void debug_printf( const char * format, ... )
 		if (g_uart1_tx_is_transfer == false)  {
 			__enable_irq();
 			va_start (args, format);
-			length = vsnprintf ((char*)g_uart1_dma_tx_buffer, 256, format, args);
+			length = vsnprintf ((char*)g_uart1_dma_tx_buffer, sizeof(g_uart1_dma_tx_buffer), format, args);
 			if (length > sizeof(g_uart1_dma_tx_buffer)) {
 				length = sizeof(g_uart1_dma_tx_buffer) - 2;
 			}
