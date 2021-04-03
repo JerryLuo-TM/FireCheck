@@ -8,17 +8,10 @@
 
 #include "spi.h"
 #include "tft.h"
-
-
+#include "spi.h"
 
 #define ROW  128			//显示行数
 #define COL  128			//显示列数
-
-//low range of the sensor (this will be blue on the screen)
-#define MINTEMP 20
-
-//high range of the sensor (this will be red on the screen)
-#define MAXTEMP 28
 
 //画笔颜色,背景颜色
 uint16_t POINT_COLOR = 0x0000, BACK_COLOR = 0xFFFF;
@@ -52,6 +45,8 @@ const uint16_t camColors[] = {0x480F,
 0xF1E0,0xF1C0,0xF1A0,0xF180,0xF160,0xF140,0xF100,0xF0E0,0xF0C0,0xF0A0,
 0xF080,0xF060,0xF040,0xF020,0xF800,};
 
+
+// #define HAL_SPI_HW_ENABLE 1
 
 void SendDataSPI(uint8_t dat)
 {
@@ -196,7 +191,7 @@ void LCD_Init(void)
 	LCD_WR_DATA(0x05);
 
 	LCD_WR_REG(0x36); //Set Scanning Direction
-	LCD_WR_DATA(0x08); //0xc8
+	LCD_WR_DATA(0x28); //0xc8
 
 	//------------------------------------ST7735S Gamma Sequence-----------------------------------------//
 	LCD_WR_REG(0xE0);
@@ -246,44 +241,35 @@ void LCD_Init(void)
 	LCD_WR_REG(0x29); // Display On
 }
 
-void BlockWrite(uint32_t Xstart,uint32_t Xend,uint32_t Ystart,uint32_t Yend) //reentrant
+void BlockWrite(uint32_t Xstart,uint32_t Xend,uint32_t Ystart,uint32_t Yend)
 {
-	//	uint16_t w;
-	//	uint16_t h;
-	//	w=Xend-Xstart+1;
-	//	h=Yend-Ystart+1;
+	uint16_t x, x1;
+
+	/* 水平翻转 */
+	x = 128 - Xstart;
+	x1 = 128 - Xend;
 
 	LCD_WR_REG(0x2a);
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(0x7f);
+	LCD_WR_DATA(x1>>8);
+	LCD_WR_DATA(x1);
+	LCD_WR_DATA(x>>8);
+	LCD_WR_DATA(x);
 
 	LCD_WR_REG(0x2b);
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(0x00);
-	LCD_WR_DATA(0x9f);
+	LCD_WR_DATA(Ystart>>8);
+	LCD_WR_DATA(Ystart);
+	LCD_WR_DATA(Yend>>8);
+	LCD_WR_DATA(Yend);
 
 	LCD_WR_REG(0x2c);
 }
 
-
-//===================================================================================================
-/*  函数: void DispColor(uint32_t color)
-	描述:  显示单色
-	注意事项：
-	申明：深圳尚视界科技有限公司   （2008-2018 版权所有，盗版必究）
-		技术支持:?QQQ:3085638545
- */
-//====================================================================================================
 void DispColor(uint32_t color)
 {
 	uint32_t i,j;
 	BlockWrite(0, COL - 1, 0, ROW - 1);
 	LCD_CS = 0;
 	LCD_RS = 1; //写数据
-
 	for(i = 0; i < ROW; i++) {
 		for(j = 0; j < COL; j++) {
 			/* 写一次数据  持续 CLK ~CLK */
@@ -291,134 +277,6 @@ void DispColor(uint32_t color)
 			SendDataSPI(color);
 		}
 	}
-	LCD_CS = 1;
-}
-
-
-void DispBand(void)
-{
-	uint32_t i,j,k;
-	//uint32_t color[8]={0x001f,0x07e0,0xf800,0x07ff,0xf81f,0xffe0,0x0000,0xffff};
-	uint32_t color[8]={0xf800,0xf800,0x07e0,0x07e0,0x001f,0x001f,0xffff,0xffff};//0x94B2
-	//uint32_t gray16[]={0x0000,0x1082,0x2104,0x3186,0x42,0x08,0x528a,0x630c,0x738e,0x7bcf,0x9492,0xa514,0xb596,0xc618,0xd69a,0xe71c,0xffff};
-	LCD_WR_REG(0x36); //Set Scanning Direction
-	LCD_WR_DATA(0x08); //0xc8
-	BlockWrite(0,COL-1,0,ROW-1);
-
-	LCD_CS = 0;
-	//LCD_RD_SET;
-	LCD_RS = 1;
-
-	for(i = 0; i < 8; i++)
-	{
-		for(j=0;j<ROW/8;j++)
-		{
-			for(k=0;k<COL;k++)
-			{
-				SendDataSPI(color[i]>>8);
-				SendDataSPI(color[i]);
-			}
-		}
-	}
-	for(j = 0; j < ROW % 8; j++)
-	{
-        for(k=0;k<COL;k++)
-		{
-				SendDataSPI(color[7]>>8);
-				SendDataSPI(color[7]);
-		}
-	}
-
-	LCD_CS = 1;
-}
-
-void DispFrame(void)
-{
-	uint32_t i,j;
-
-	BlockWrite(0,COL-1,0,ROW-1);
-
-	LCD_CS = 0;
-	LCD_RS = 1;
-	//LCD_RD_SET;
-
-	SendDataSPI(0xf8);SendDataSPI(0x00);
-	for(i=0;i<COL-2;i++){SendDataSPI(0xFF);SendDataSPI(0xFF);}
-	SendDataSPI(0x00);SendDataSPI(0x1f);
-
-	for(j=0;j<ROW-2;j++)
-	{
-		SendDataSPI(0xf8);SendDataSPI(0x00);
-		for(i=0;i<COL-2;i++){SendDataSPI(0x00);SendDataSPI(0x00);}
-		SendDataSPI(0x00);SendDataSPI(0x1F);
-	}
-
-	SendDataSPI(0xf8);SendDataSPI(0x00);
-	for(i=0;i<COL-2;i++){SendDataSPI(0xFF);SendDataSPI(0xFF);}
-	SendDataSPI(0x00);SendDataSPI(0x1F);
-
-	LCD_CS = 1;
-}
-
-void DispGrayHor16(void)
-{
-	uint32_t i,j,k;
-
-	BlockWrite(0,COL-1,0,ROW-1);
-
-	LCD_CS = 0;
-	//LCD_RD_SET;
-	LCD_RS = 1;
-
-	for(i=0;i<ROW;i++)
-	{
-		for(j=0;j<COL%16;j++)
-		{
-			SendDataSPI(0);
-			SendDataSPI(0);
-		}
-
-		for(j=0;j<16;j++)
-		{
-			for(k=0;k<COL/16;k++)
-			{
-				SendDataSPI(((j*2)<<3)|((j*4)>>3));
-				SendDataSPI(((j*4)<<5)|(j*2));
-			}
-		}
-	}
-
-	LCD_CS = 1;
-}
-
-void DispGrayHor32(void)
-{
-	uint32_t i,j,k;
-
-	BlockWrite(0,COL-1,0,ROW-1);
-
-	LCD_CS = 0;
-	LCD_SDA = 1;
-	LCD_RS = 1;
-
-	for(i=0;i<ROW;i++)
-	{
-		for(j=0;j<COL%32;j++)
-		{
-			SendDataSPI(0);
-			SendDataSPI(0);
-		}
-
-		for(j=0;j<32;j++)
-		{
-			for(k=0;k<COL/32;k++)
-			{
-				SendDataSPI((j<<3)|((j*2)>>3));
-				SendDataSPI(((j*2)<<5)|j);
-			}
-		}
-	}
-
 	LCD_CS = 1;
 }
 
@@ -449,42 +307,64 @@ void DispPic(uint16_t x,uint16_t y,uint16_t w, uint16_t h,const uint8_t *p)
 
 void LCD_SetPixel(uint16_t  x,uint16_t  y,uint16_t  color)
 {
-	BlockWrite(x, x + 1, y, y + 1);
+	BlockWrite(x, x, y, y);
 	LCD_CS = 0;
 	LCD_RS = 1;
-	LCD_WR_DATA(color>>8);
-	LCD_WR_DATA(color);
-
+	SendDataSPI(color>>8);
+	SendDataSPI(color);
 	LCD_CS = 1;
 }
 
+// x: 0-7
+// y: 0-7
+void fill_select_region(uint8_t x, uint8_t y, uint16_t color)
+{
+	uint8_t x_start, y_start;
+	if (x >= 8) {return;}
+	if (y >= 8) {return;}
 
-#if 0
-amg.readPixels(pixels);
+	x_start = x * 16;
+	y_start = y * 16;
 
-for(int i=0; i<AMG88xx_PIXEL_ARRAY_SIZE; i++){
+	BlockWrite(x_start, x_start + 16 -1, y_start, y_start + 16 -1);
 
-int colorTemp;
-if(pixels[i] >= MAXTEMP) colorTemp = MAXTEMP;
-else if(pixels[i] <= MINTEMP) colorTemp = MINTEMP;
-else colorTemp = pixels[i];
-
-uint8_t colorIndex = map(colorTemp, MINTEMP, MAXTEMP, 0, 255);
-
-colorIndex = constrain(colorIndex, 0, 255);
-//draw the pixels!
-tft.fillRect(displayPixelHeight * floor(i / 8), 40 + displayPixelWidth * ((AMG88xx_PIXEL_ARRAY_SIZE - i - 1) % 8),
-	displayPixelHeight, displayPixelWidth, camColors[colorIndex]);
-
-#ifdef SHOW_TEMP_TEXT
-	tft.setCursor( displayPixelHeight * floor(i / 8) + displayPixelHeight/2 - 12,
-					40 + displayPixelWidth * ((AMG88xx_PIXEL_ARRAY_SIZE - i - 1) % 8) + displayPixelHeight/2 - 4);
-	tft.setTextColor(ILI9341_WHITE);  tft.setTextSize(1);
-	tft.print(pixels[i],1);
-#endif
-
+	LCD_CS = 0;
+	LCD_RS = 1;
+	for (int i = 0; i < 16 * 16; i++) {
+		SendDataSPI(color>>8);
+		SendDataSPI(color);
+	}
+	LCD_CS = 1;
 }
-#endif
+
+//low range of the sensor (this will be blue on the screen)
+#define MINTEMP (10.0f)
+
+//high range of the sensor (this will be red on the screen)
+#define MAXTEMP (80.0f)
+
+
+void show_map(float (*buffer)[8], uint16_t length)
+{
+	uint8_t i, j, colorIndex;
+	float colorTemp, Temputer;
+
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			colorTemp = buffer[7 - i][7 - j];
+			if (colorTemp >= MAXTEMP) {
+				Temputer = MAXTEMP;
+			} else if (colorTemp <= MINTEMP) {
+				Temputer = MINTEMP;
+			} else {
+				Temputer = colorTemp;
+			}
+			colorIndex = (Temputer - MINTEMP) * 3.5f;
+			fill_select_region(j, i, camColors[colorIndex]);
+		}
+	}
+}
+
 
 
 

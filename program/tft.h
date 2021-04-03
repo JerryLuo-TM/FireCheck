@@ -44,6 +44,8 @@ void DispInt(uint32_t i,uint32_t Xstart,uint32_t Ystart,uint32_t TextColor,uint3
 void DispPic(uint16_t x,uint16_t y,uint16_t w, uint16_t h,const uint8_t *p);
 
 
+void fill_select_region(uint8_t x, uint8_t y, uint16_t color);
+void show_map(float (*buffer)[8], uint16_t length);
 
 #endif
 

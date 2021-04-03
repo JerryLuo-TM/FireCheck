@@ -109,6 +109,8 @@ void AMG8833_Init(void)
 	/* config interrupt */
 	// AMG8833_Write_Byte(0x03, 0x00);
 
+	debug_printf("address[2]:%d\r\n",AMG8833_Read_Byte(0x02));
+
 	/* 0x80 ~ 0xFF 0x81(H) 0x80(L) */
 }
 
