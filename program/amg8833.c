@@ -267,7 +267,7 @@ void AMG8833_draw_Img(void)
 {
 	uint16_t i;
 	for (i = 0; i < PixLg*PixLg; i++) {
-		LCD_ColorBox(4+i/PixLg*3, 4+i%PixLg*3, 3, 3, data[i/PixLg][i%PixLg]);
+		LCD_ColorBox(4+i/PixLg*3, 4+i%PixLg*3, 3, 3, data[i%PixLg][i/PixLg]);
 	}
 }
 

@@ -203,17 +203,20 @@ void LCD_BlockWrite(uint32_t Xstart,uint32_t Xend,uint32_t Ystart,uint32_t Yend)
 	uint16_t x, x1;
 
 	/* Ë®Æ½·­×ª */
-	x = 128 - Xstart;
-	x1 = 128 - Xend;
+	// x = 128 - Xstart;
+	// x1 = 128 - Xend;
 
-	// y = 128 - Ystart;
-	// y1 = 128 - Yend;
+	// LCD_WR_REG(0x2a);
+	// LCD_WR_DATA(x1>>8);
+	// LCD_WR_DATA(x1);
+	// LCD_WR_DATA(x>>8);
+	// LCD_WR_DATA(x);
 
 	LCD_WR_REG(0x2a);
-	LCD_WR_DATA(x1>>8);
-	LCD_WR_DATA(x1);
-	LCD_WR_DATA(x>>8);
-	LCD_WR_DATA(x);
+	LCD_WR_DATA(Xstart>>8);
+	LCD_WR_DATA(Xstart);
+	LCD_WR_DATA(Xend>>8);
+	LCD_WR_DATA(Xend);
 
 	LCD_WR_REG(0x2b);
 	LCD_WR_DATA(Ystart>>8);
