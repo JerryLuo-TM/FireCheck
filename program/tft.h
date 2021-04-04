@@ -30,22 +30,18 @@
 
 void LCD_GPIOInit(void);
 void LCD_Init(void);
-void DispColor(uint32_t color);
-void DispFrame(void);
-void DispBand(void);
-void DispGrayHor16(void);
-void DispGrayHor32(void);
-void BlockWrite(uint32_t Xstart,uint32_t Xend,uint32_t Ystart,uint32_t Yend);
-void DrawGird(uint32_t color);
-void PutPixel(uint32_t x,uint32_t y,uint32_t color);
-void DispStr(uint8_t *str,uint32_t Xstart,uint32_t Ystart,uint32_t TextColor,uint32_t BackColor);
-uint32_t ReadData(void);
-void DispInt(uint32_t i,uint32_t Xstart,uint32_t Ystart,uint32_t TextColor,uint32_t BackColor);
-void DispPic(uint16_t x,uint16_t y,uint16_t w, uint16_t h,const uint8_t *p);
+void LCD_DispColor(uint32_t color);
+void LCD_BlockWrite(uint32_t Xstart,uint32_t Xend,uint32_t Ystart,uint32_t Yend);
+void LCD_ColorBox(uint16_t xStart,uint16_t yStart,uint16_t xLong,uint16_t yLong,uint16_t color);
+
+void LCD_SetPixel(uint16_t  x,uint16_t  y,uint16_t  color);
+void LCD_SetBigPixel(uint16_t  x,uint16_t  y,uint16_t  color);
+void LCD_DispPic(uint16_t x,uint16_t y,uint16_t w, uint16_t h,const uint8_t *p);
 
 
-void fill_select_region(uint8_t x, uint8_t y, uint16_t color);
-void show_map(float (*buffer)[8], uint16_t length);
+
+void LCD_Fill_region(uint8_t x, uint8_t y, uint16_t color);
+void LCD_Show_raw_map(float (*buffer)[8], uint16_t length);
 
 #endif
 

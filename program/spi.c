@@ -27,13 +27,13 @@ void SPI1_Init(void)
 	GPIO_SetBits(GPIOA,GPIO_Pin_6|GPIO_Pin_7);
 	GPIO_ResetBits(GPIOA,GPIO_Pin_7);
 
-	SPI1_InitStructure.SPI_Direction	= SPI_Direction_2Lines_FullDuplex;
+	SPI1_InitStructure.SPI_Direction	= SPI_Direction_1Line_Tx;
 	SPI1_InitStructure.SPI_Mode			= SPI_Mode_Master;
 	SPI1_InitStructure.SPI_DataSize		= SPI_DataSize_8b;
 	SPI1_InitStructure.SPI_CPOL			= SPI_CPOL_Low;
 	SPI1_InitStructure.SPI_CPHA			= SPI_CPHA_1Edge;
 	SPI1_InitStructure.SPI_NSS			= SPI_NSS_Soft;
-	SPI1_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	SPI1_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;
 	SPI1_InitStructure.SPI_FirstBit				= SPI_FirstBit_MSB;
 	SPI1_InitStructure.SPI_CRCPolynomial		= 7;
 	SPI_Init(SPI1, &SPI1_InitStructure);
@@ -92,20 +92,20 @@ void SPI1_SetSpeed(uint8_t SpeedSet)
 
 uint8_t SPI1_ReadWriteByte(uint8_t TxData)
 {
-	uint16_t retry=0;
-	while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET)
-	{
+	uint16_t retry;
+
+	retry = 0;
+	while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET) {
 		retry++;
 		if(retry>1000)return 0;
 	}
 	SPI_I2S_SendData(SPI1, TxData);
-	retry=0;
 
-	while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET)
-	{
-		retry++;
-		if(retry>1000)return 0;
-	}
+	// retry=0;
+	// while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET) {
+	// 	retry++;
+	// 	if(retry>1000)return 0;
+	// }
 	return SPI_I2S_ReceiveData(SPI1);
 }
 

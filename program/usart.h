@@ -5,8 +5,8 @@
 #include "sys.h"
 #include "stdbool.h"
 
-extern uint8_t g_uart1_dma_tx_buffer[256 + 64];
-extern uint8_t g_uart1_dma_rx_buffer[64];
+extern uint8_t g_uart1_dma_tx_buffer[256];
+extern uint8_t g_uart1_dma_rx_buffer[32];
 
 extern volatile bool g_uart1_tx_is_transfer;
 

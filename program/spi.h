@@ -2,8 +2,8 @@
 #define __SPI_H
 #include "sys.h"
 
-#define SPI_TX_DMA_CHANNEL		DMA1_Channel3
-#define SPI_TX_DMA_IRQn				DMA1_Channel3_IRQn
+#define SPI_TX_DMA_CHANNEL      DMA1_Channel3
+#define SPI_TX_DMA_IRQn         DMA1_Channel3_IRQn
 
 void SPI1_Init(void);
 void SPI1_SetSpeed(uint8_t SpeedSet);

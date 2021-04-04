@@ -6,16 +6,17 @@ uint8_t uart1_rx_ring_buffer[256] __attribute__ ((aligned (4)));
 
 SemaphoreHandle_t xSemaphore_uart1_rx;
 
-uint16_t color_table[16] = {0x5555, 0x0000, 0x001F, 0XF81F, 0XFFE0, 0X07FF, 0xF800, 0X5010,
-							0xF81F, 0x07E0, 0x7FFF, 0xFFE0, 0XBC40, 0XFC07, 0X8430, 0x51F1};
+
+uint16_t PriData[8][8];
+long data[PixLg][PixLg];
+long ext[3];
+uint8_t ext_add[2];
 
 void demo_task(void *pvParameters)
 {
-	uint8_t key_num;
-	uint32_t count, max_index, i, j;
-	float receive_buffer[8][8];
-	float line_max[8];
+	uint32_t count;
 	TickType_t xLastWakeTime = xTaskGetTickCount();
+
 	while (1)
 	{
 		if (++count%2 == 0) {
@@ -26,15 +27,24 @@ void demo_task(void *pvParameters)
 			LED_TEST = 0;
 		}
 
-		key_num = KEY_Scan(0);
-		if (key_num != 0) {
-			debug_printf("Press key = %d \r\n", key_num);
+		if (KEY_Scan(0) != 0) {
+			debug_printf("Press key \r\n");
 		}
 
-		AMG8833_ReadPixels((float*)&receive_buffer[0][0], 64);
-		show_map(receive_buffer, 64);
+		/* 获取原始数据 */
+		AMG8833_get_Pixels(PriData);
+		/* 转换图像 */
+		AMG8833_get_Img();
+		/* 图像输出 */
+		AMG8833_draw_Img();
 
-		// debug_printf("temputer : \r\n");
+		LCD_SetBigPixel(0,0,RED);
+		LCD_SetBigPixel(2,0,RED);
+		// float line_max[8];
+		// float receive_buffer[8][8];
+		// AMG8833_ReadPixels((float*)&receive_buffer[0][0], 64);
+		// show_map(receive_buffer, 64);
+
 		// for (i = 0; i < 8; i++) {
 		// 	line_max[i] = receive_buffer[i][0];
 		// 	for (j = 0; j < 8; j++) {
@@ -47,12 +57,12 @@ void demo_task(void *pvParameters)
 		// }
 		// debug_printf("\r\n");
 
-		max_index = 0;
-		for (i = 0; i < 8 ; i++) {
-			if (line_max[i] > line_max[max_index]) {
-				max_index = i;
-			}
-		}
+		// max_index = 0;
+		// for (i = 0; i < 8 ; i++) {
+		// 	if (line_max[i] > line_max[max_index]) {
+		// 		max_index = i;
+		// 	}
+		// }
 
 		// debug_printf("index = %d \r\n", max_index);
 		// TIM_SetCompare1(TIM2, 1000 + (max_index * 100));
@@ -77,8 +87,8 @@ void race_task(void *pvParameters)
 				} else {
 					TIM_SetCompare1(TIM2, 500 + (uint32_t)uart_receive_buffer[0] * 10);
 				}
-				// debug_printf("len[%d] value[%d] value[%d] value[%d]\r\n", receive_length,
-				// 							uart_receive_buffer[0],uart_receive_buffer[1],uart_receive_buffer[2]);
+				debug_printf("len[%d] value[%d] value[%d] value[%d]\r\n", receive_length,
+											uart_receive_buffer[0],uart_receive_buffer[1],uart_receive_buffer[2]);
 				// uart1_send_string(uart_receive_buffer, receive_length);
 			}
 		}
@@ -104,7 +114,7 @@ void create_app_task(void)
 	//create demo task
     xTaskCreate((TaskFunction_t )race_task,
                 (const char*    )"race_task",
-                (uint16_t       )2048/sizeof(StackType_t),
+                (uint16_t       )1024/sizeof(StackType_t),
                 (void*          )NULL,
                 (UBaseType_t    )6,
                 (TaskHandle_t*  )NULL);
@@ -112,7 +122,8 @@ void create_app_task(void)
 
 int main(void)
 {
-	Stm32_Clock_Init(6); //8Mhz * 9 = 72M
+	/* reset handle had init sysclk */
+	/* modify ext freq HSE_VALUE stm32f10x.h */
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组
 
 	/* Delay Init */
@@ -124,7 +135,7 @@ int main(void)
 	LED_init();
 
 	/* UART1 INIT */
-	UART1_Init(115200); //APB2 peripheral = 72Mhz
+	UART1_Init(921600); //APB2 peripheral = 72Mhz
 
 	/* Timestamp timer init @100us*/
 	TIM3_Int_Init(999,7199);
@@ -139,7 +150,7 @@ int main(void)
 	TIM_SetCompare2(TIM2, 1000);
 
 	LCD_Init();
-	DispColor(WHITE);
+	LCD_DispColor(WHITE);
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();

@@ -6,8 +6,8 @@
 #include <stdarg.h>
 #include "ring_buffer.h"
 
-uint8_t g_uart1_dma_tx_buffer[256 + 64] __attribute__ ((aligned (4)));
-uint8_t g_uart1_dma_rx_buffer[64] __attribute__ ((aligned (4)));
+uint8_t g_uart1_dma_tx_buffer[256] __attribute__ ((aligned (4)));
+uint8_t g_uart1_dma_rx_buffer[32] __attribute__ ((aligned (4)));
 
 volatile bool g_uart1_tx_is_transfer = false;
 
