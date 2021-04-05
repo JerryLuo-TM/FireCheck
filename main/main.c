@@ -16,6 +16,7 @@ void demo_task(void *pvParameters)
 {
 	uint32_t count;
 	TickType_t xLastWakeTime = xTaskGetTickCount();
+	uint32_t key_value, pwm_value = 1500;
 
 	while (1)
 	{
@@ -27,9 +28,22 @@ void demo_task(void *pvParameters)
 			LED_TEST = 0;
 		}
 
-		if (KEY_Scan(0) != 0) {
-			debug_printf("Press key \r\n");
+		key_value = KEY_Scan(1);
+		if (key_value == 1) {
+			pwm_value += 50;
+		} else if (key_value == 2) {
+			pwm_value -= 50;
 		}
+
+		if (pwm_value > 2500) {
+			pwm_value = 2500;
+			debug_printf("pwm max value = %d \r\n", pwm_value);
+		} else if (pwm_value < 500) {
+			pwm_value = 500;
+			debug_printf("pwm mini value = %d \r\n", pwm_value);
+		}
+
+		// TIM_SetCompare1(TIM2, pwm_value);
 
 		/* 获取原始数据 */
 		AMG8833_get_Pixels(PriData);
@@ -57,15 +71,17 @@ void demo_task(void *pvParameters)
 		// }
 		// debug_printf("\r\n");
 
-		// max_index = 0;
-		// for (i = 0; i < 8 ; i++) {
-		// 	if (line_max[i] > line_max[max_index]) {
-		// 		max_index = i;
-		// 	}
-		// }
-
-		// debug_printf("index = %d \r\n", max_index);
-		// TIM_SetCompare1(TIM2, 1000 + (max_index * 100));
+		{
+			float max_temp = (float)ext[0] * 0.25f;
+			float max_index = ext_add[0]%8;
+			if (max_temp > 30.0f) {
+				LASER_Switch = 1;
+				TIM_SetCompare1(TIM2, 500 + (max_index * 250));
+			} else {
+				LASER_Switch = 0;
+				// TIM_SetCompare1(TIM2, 1500);
+			}
+		}
 
 		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/10);
 	}
@@ -82,14 +98,8 @@ void race_task(void *pvParameters)
 			if (receive_length > 0) {
 				memset(uart_receive_buffer, 0, sizeof(uart_receive_buffer));
 				RingBuffer_PopMult(&uart1_rx_ring, &uart_receive_buffer[0], receive_length);
-				if (uart_receive_buffer[0] > 200) {
-					TIM_SetCompare1(TIM2, 2500);
-				} else {
-					TIM_SetCompare1(TIM2, 500 + (uint32_t)uart_receive_buffer[0] * 10);
-				}
 				debug_printf("len[%d] value[%d] value[%d] value[%d]\r\n", receive_length,
 											uart_receive_buffer[0],uart_receive_buffer[1],uart_receive_buffer[2]);
-				// uart1_send_string(uart_receive_buffer, receive_length);
 			}
 		}
 	}
@@ -146,8 +156,8 @@ int main(void)
 	AMG8833_Init();
 
 	TIM2_PWM_Init(2499, 71);
-	TIM_SetCompare1(TIM2, 1000);
-	TIM_SetCompare2(TIM2, 1000);
+	TIM_SetCompare1(TIM2, 1500);
+	TIM_SetCompare2(TIM2, 1500);
 
 	LCD_Init();
 	LCD_DispColor(WHITE);

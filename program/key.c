@@ -1,3 +1,4 @@
+#include "Struct.h"
 #include "key.h"
 #include "sys.h"
 #include "delay.h"
@@ -8,7 +9,7 @@ void KEY_Init(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_13 | GPIO_Pin_14;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	GPIO_SetBits(GPIOC,GPIO_Pin_13|GPIO_Pin_14);
@@ -28,7 +29,8 @@ uint8_t KEY_Scan(uint8_t mode)
 	static uint8_t key_up = 1;//按键按松开标志
 	if(mode) key_up = 1;  //支持连按
 	if(key_up && (KEY1 == 0 || KEY2 == 0)) {
-		delay_ms(10);//去抖动
+		// delay_ms(10);//去抖动
+		vTaskDelay(pdMS_TO_TICKS(10));
 		key_up = 0;
 		if(KEY1 == 0) {return 1;}
 		else if(KEY2 == 0) {return 2;}
@@ -36,5 +38,5 @@ uint8_t KEY_Scan(uint8_t mode)
 		key_up = 1;
 	}
 
-	return 0;// 无按键按下
+	return 0; // 无按键按下
 }

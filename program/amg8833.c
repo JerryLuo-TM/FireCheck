@@ -108,8 +108,6 @@ void AMG8833_Init(void)
 	/* config interrupt */
 	// AMG8833_Write_Byte(0x03, 0x00);
 
-	debug_printf("address[2]:%d\r\n",AMG8833_Read_Byte(0x02));
-
 	/* 0x80 ~ 0xFF 0x81(H) 0x80(L) */
 }
 
@@ -235,11 +233,11 @@ void data_push(uint16_t (*buffer)[8])
 	ext[1] = 0x7fff;
 
 	for(i = 0; i < 64; i++) {
-		if(buffer[i/8][i%8] > ext[0]) {	//遍历最值
+		if(buffer[i/8][i%8] > ext[0]) {	//遍历最大值
 			ext[0] = buffer[i/8][i%8];
 			ext_add[0] = i;
 		}
-		if(buffer[i/8][i%8] < ext[1]) {
+		if(buffer[i/8][i%8] < ext[1]) { //遍历最小值
 			ext[1] = buffer[i/8][i%8];
 			ext_add[1] = i;
 		}
@@ -249,6 +247,11 @@ void data_push(uint16_t (*buffer)[8])
 		data[PixLg-1-(i / 8 * PixGain + 1)][i % 8 * PixGain + 1] = buffer[i/8][i%8];
 #endif
 	}
+	debug_printf("ext[0]=%0.2f ext[1]=%0.2f ext_add[0]=(%d,%d) ext_add[1]=(%d,%d) \r\n",
+												(float)ext[0] * 0.25, (float)ext[1] * 0.25f,
+												ext_add[0]/8, ext_add[0]%8,
+												ext_add[1]/8, ext_add[1]%8);
+
 }
 
 void get_img(void)
