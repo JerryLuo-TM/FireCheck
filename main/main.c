@@ -89,7 +89,7 @@ void demo_task(void *pvParameters)
 		{
 			if (max_temp > 35.0f) {
 				LASER_Switch = 1;
-				TIM_SetCompare1(TIM2, 500 + (max_index * 250));
+				TIM_SetCompare1(TIM2, 500 + ((max_index / 8) * 250));
 			} else {
 				LASER_Switch = 0;
 				// TIM_SetCompare1(TIM2, 1500);
