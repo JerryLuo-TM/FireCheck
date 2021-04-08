@@ -10,11 +10,14 @@
 #include "tft.h"
 #include "spi.h"
 
+#include "font.h"
+#include "tft.h"
+
 #define ROW  128			//显示行数
 #define COL  128			//显示列数
 
-//画笔颜色,背景颜色
-uint16_t POINT_COLOR = 0x0000, BACK_COLOR = 0xFFFF;
+//画笔颜色,背景颜色 WHITE
+uint16_t POINT_COLOR = WHITE, BACK_COLOR = BLACK;
 uint16_t DeviceCode;
 
 
@@ -99,16 +102,19 @@ void LCD_Init(void)
 
 	LCD_WR_REG(0x11); //Exit Sleep
 	delay_ms(50);
+	/* FRMCTR1 (B1h): Frame Rate Control (In normal mode/ Full colors) */
 	LCD_WR_REG(0xB1);
 	LCD_WR_DATA(0x02);
 	LCD_WR_DATA(0x35);
 	LCD_WR_DATA(0x36);
 
+	/* FRMCTR2 (B2h): Frame Rate Control (In Idle mode/ 8-colors) */
 	LCD_WR_REG(0xB2);
 	LCD_WR_DATA(0x02);
 	LCD_WR_DATA(0x35);
 	LCD_WR_DATA(0x36);
 
+	/* FRMCTR3 (B3h): Frame Rate Control (In Partial mode/ full colors) */
 	LCD_WR_REG(0xB3);
 	LCD_WR_DATA(0x02);
 	LCD_WR_DATA(0x35);
@@ -119,28 +125,35 @@ void LCD_Init(void)
 
 	//------------------------------------End ST7735S Frame Rate-----------------------------------------//
 	LCD_WR_REG(0xB4); //Dot inversion
-	LCD_WR_DATA(0x03); //03
+	LCD_WR_DATA(0x00); //03
 
+	/* PWCTR1 (C0h): Power Control 1 */
 	LCD_WR_REG(0xC0);
 	LCD_WR_DATA(0xa2);
 	LCD_WR_DATA(0x02);
 	LCD_WR_DATA(0x84);
 
+	/* PWCTR2 (C1h): Power Control 2 */
 	LCD_WR_REG(0xC1);
 	LCD_WR_DATA(0XC5);
 
+	/* PWCTR3 (C2h): Power Control 3 (in Normal mode/ Full colors) */
 	LCD_WR_REG(0xC2);
 	LCD_WR_DATA(0x0D);
 	LCD_WR_DATA(0x00);
 
+	/* PWCTR4 (C3h): Power Control 4 (in Idle mode/ 8-colors) */
 	LCD_WR_REG(0xC3);
 	LCD_WR_DATA(0x8D);
 	LCD_WR_DATA(0x2A);
 
+	/* PWCTR5 (C4h): Power Control 5 (in Partial mode/ full-colors) */
 	LCD_WR_REG(0xC4);
 	LCD_WR_DATA(0x8D);
 	LCD_WR_DATA(0xEE);
 	//---------------------------------End ST7735S Power Sequence-------------------------------------//
+
+	/* VMCTR1 (C5h): VCOM Control 1 */
 	LCD_WR_REG(0xC5); //VCOM
 	LCD_WR_DATA(0x03);
 
@@ -202,21 +215,23 @@ void LCD_BlockWrite(uint32_t Xstart,uint32_t Xend,uint32_t Ystart,uint32_t Yend)
 {
 	uint16_t x, x1;
 
+#if 1
 	/* 水平翻转 */
-	// x = 128 - Xstart;
-	// x1 = 128 - Xend;
+	x = 127 - Xstart;
+	x1 = 127 - Xend;
 
-	// LCD_WR_REG(0x2a);
-	// LCD_WR_DATA(x1>>8);
-	// LCD_WR_DATA(x1);
-	// LCD_WR_DATA(x>>8);
-	// LCD_WR_DATA(x);
-
+	LCD_WR_REG(0x2a);
+	LCD_WR_DATA(x1>>8);
+	LCD_WR_DATA(x1);
+	LCD_WR_DATA(x>>8);
+	LCD_WR_DATA(x);
+#else
 	LCD_WR_REG(0x2a);
 	LCD_WR_DATA(Xstart>>8);
 	LCD_WR_DATA(Xstart);
 	LCD_WR_DATA(Xend>>8);
 	LCD_WR_DATA(Xend);
+#endif
 
 	LCD_WR_REG(0x2b);
 	LCD_WR_DATA(Ystart>>8);
@@ -341,9 +356,72 @@ void LCD_Show_raw_map(float (*buffer)[8], uint16_t length)
 	}
 }
 
+//显示一个字符 16 32
+void LCD_ShowChar(uint32_t x, uint32_t y, uint8_t num, uint8_t size)
+{
+	uint8_t i, j;
+	uint8_t temp;
+	uint8_t csize = (size / 8 + ((size % 8) ? 1:0)) * (size / 2);//得到字体一个字符对应点阵集所占的字节数
 
+	//得到偏移后的值（ASCII字库是从空格开始取模，所以-' '就是对应字符的字库）
+	num = num - ' ';
+	//选择范围
+	if (size==16)     {LCD_BlockWrite(x,x+8-1,y, y+16-1); }
+	else if(size==32) {LCD_BlockWrite(x,x+16-1,y,y+32-1); }
+	else {return;}
 
+	LCD_CS = 0;
+	LCD_RS = 1;
+	//刷入数据
+	if (size == 16) {
+		for(i = 0; i < csize; i++) {
+			temp = asc2_1608[num][i]; //调用1608字体
+			for(j = 0; j < 8; j++) {
+				if(((temp)&(1<<j)) != 0) {
+					SendDataSPI(POINT_COLOR>>8);
+					SendDataSPI(POINT_COLOR);
+				} else {
+					SendDataSPI(BACK_COLOR>>8);
+					SendDataSPI(BACK_COLOR);
+				}
+			}
+		}
+	} else if (size == 32){
+		for(i = 0; i < 32; i++) {
+			temp = asc2_3216[num][32 + i];//调用3216字体
+			for(j = 0; j < 8; j++) {
+				if(((temp)&(1<<j)) != 0) {
+					SendDataSPI(POINT_COLOR>>8);
+					SendDataSPI(POINT_COLOR);
+				} else {
+					SendDataSPI(BACK_COLOR>>8);
+					SendDataSPI(BACK_COLOR);
+				}
+			}
+			temp = asc2_3216[num][i];//调用3216字体
+			for(j = 0; j < 8; j++) {
+				if(((temp)&(1<<j)) != 0) {
+					SendDataSPI(POINT_COLOR>>8);
+					SendDataSPI(POINT_COLOR);
+				} else {
+					SendDataSPI(BACK_COLOR>>8);
+					SendDataSPI(BACK_COLOR);
+				}
+			}
+		}
+	}
+	LCD_CS = 1;
+}
 
+//显示字符串
+void LCD_ShowStr(uint32_t x,uint32_t y,uint8_t *p,uint8_t size)
+{
+	//判断是不是非法字符!
+    while (*p != '\0') {
+        LCD_ShowChar(x, y, *p++, size);
+        x += size / 2;
+    }
+}
 
 
 

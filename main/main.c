@@ -12,12 +12,18 @@ long data[PixLg][PixLg];
 long ext[3];
 uint8_t ext_add[2];
 
+uint8_t fram_rate_count, fram_rate;
+
 void demo_task(void *pvParameters)
 {
 	uint32_t count;
+	unsigned char str_buf[16];
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 	uint32_t key_value, pwm_value = 1500;
-
+	float max_temp;
+	float min_temp;
+	uint8_t max_index;
+	uint8_t min_index;
 	while (1)
 	{
 		if (++count%2 == 0) {
@@ -51,30 +57,37 @@ void demo_task(void *pvParameters)
 		AMG8833_get_Img();
 		/* 图像输出 */
 		AMG8833_draw_Img();
+		/* 帧率统计 */
+		fram_rate_count += 1;
+		/* 计算参数 */
+		max_temp = (float)ext[0] * 0.25f;
+		min_temp = (float)ext[1] * 0.25f;
+		max_index = ext_add[0];
+		min_index = ext_add[1];
 
-		LCD_SetBigPixel(0,0,RED);
-		LCD_SetBigPixel(2,0,RED);
-		// float line_max[8];
-		// float receive_buffer[8][8];
-		// AMG8833_ReadPixels((float*)&receive_buffer[0][0], 64);
-		// show_map(receive_buffer, 64);
+		/* show max temputer */
+		POINT_COLOR = WHITE, BACK_COLOR = BLACK;
+		sprintf((char*)str_buf, "%.1f", max_temp);
+		LCD_ShowStr(2 + 0,  82 + 5, "Max: ", 16);
+		LCD_ShowStr(2 + 40, 82 + 5, str_buf, 16);
+		sprintf((char*)str_buf, "(%d,%d)", 7 - max_index/8, max_index%8);
+		LCD_ShowStr(2 + 40 + 40, 82 + 5, str_buf, 16);
 
-		// for (i = 0; i < 8; i++) {
-		// 	line_max[i] = receive_buffer[i][0];
-		// 	for (j = 0; j < 8; j++) {
-		// 		if (line_max[i] < receive_buffer[i][j]) {
-		// 			line_max[i] = receive_buffer[i][j];
-		// 		}
-		// 		debug_printf("%2.0f ", receive_buffer[i][j]);
-		// 	}
-		// 	debug_printf("\r\n");
-		// }
-		// debug_printf("\r\n");
+		/* show min temputer */
+		POINT_COLOR = WHITE, BACK_COLOR = BLACK;
+		sprintf((char*)str_buf, "%.1f", min_temp);
+		LCD_ShowStr(2,  82 + 5 + 20, "Min: ", 16);
+		LCD_ShowStr(2 + 40, 82 + 5 + 20, str_buf, 16);
+		sprintf((char*)str_buf, "(%d,%d)", min_index/8, min_index%8);
+		LCD_ShowStr(2 + 40 + 40, 82 + 5 + 20, str_buf, 16);
+
+		/* show Frame rate */
+		sprintf((char*)str_buf, "%0.2d", fram_rate);
+		LCD_ShowStr(82 + 2, 2, "FPS", 16);
+		LCD_ShowStr(82 + 24 + 2 ,  2, str_buf, 16);
 
 		{
-			float max_temp = (float)ext[0] * 0.25f;
-			float max_index = ext_add[0]%8;
-			if (max_temp > 30.0f) {
+			if (max_temp > 35.0f) {
 				LASER_Switch = 1;
 				TIM_SetCompare1(TIM2, 500 + (max_index * 250));
 			} else {
@@ -105,6 +118,21 @@ void race_task(void *pvParameters)
 	}
 }
 
+void caculate_task(void *pvParameters)
+{
+	uint32_t count;
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+	while (1)
+	{
+		count += 1;
+		if ((count % 20) == 0) {
+			fram_rate = fram_rate_count;
+			fram_rate_count = 0;
+		}
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/20);
+	}
+}
+
 
 void create_app_task(void)
 {
@@ -124,6 +152,14 @@ void create_app_task(void)
 	//create demo task
     xTaskCreate((TaskFunction_t )race_task,
                 (const char*    )"race_task",
+                (uint16_t       )1024/sizeof(StackType_t),
+                (void*          )NULL,
+                (UBaseType_t    )5,
+                (TaskHandle_t*  )NULL);
+
+	//create caculate task
+    xTaskCreate((TaskFunction_t )caculate_task,
+                (const char*    )"caculate_task",
                 (uint16_t       )1024/sizeof(StackType_t),
                 (void*          )NULL,
                 (UBaseType_t    )6,
@@ -160,7 +196,7 @@ int main(void)
 	TIM_SetCompare2(TIM2, 1500);
 
 	LCD_Init();
-	LCD_DispColor(WHITE);
+	LCD_DispColor(BLACK);
 
 	/* 开启任务调度 */
 	vTaskStartScheduler();

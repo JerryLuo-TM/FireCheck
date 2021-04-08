@@ -28,6 +28,9 @@
 #define BRRED       0XFC07 //棕红色
 #define GRAY        0X8430 //灰色
 
+
+extern uint16_t POINT_COLOR, BACK_COLOR;
+
 void LCD_GPIOInit(void);
 void LCD_Init(void);
 void LCD_DispColor(uint32_t color);
@@ -38,10 +41,11 @@ void LCD_SetPixel(uint16_t  x,uint16_t  y,uint16_t  color);
 void LCD_SetBigPixel(uint16_t  x,uint16_t  y,uint16_t  color);
 void LCD_DispPic(uint16_t x,uint16_t y,uint16_t w, uint16_t h,const uint8_t *p);
 
-
-
 void LCD_Fill_region(uint8_t x, uint8_t y, uint16_t color);
 void LCD_Show_raw_map(float (*buffer)[8], uint16_t length);
+
+void LCD_ShowChar(uint32_t x, uint32_t y, uint8_t num, uint8_t size);
+void LCD_ShowStr(uint32_t x,uint32_t y,uint8_t *p,uint8_t size);
 
 #endif
 

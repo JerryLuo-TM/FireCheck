@@ -198,7 +198,7 @@ uint16_t To_HSB(uint8_t num){
 			R=G=B=num;
 
 	}
-	// RRRRR GGGGG+G BBBBB//
+	// RRRRR GGGGG+G BBBBB
 	return 0xFFFF&((B&0xf8)>>3|(G&0xfC)<<3|(R&0xf8)<<8);
 }
 
@@ -222,7 +222,7 @@ void AMG8833_get_Pixels(uint16_t (*buffer)[8])
 		} else if (raw_temp > 0x200) {
 			raw_temp = 0x200;
 		}
-		buffer[i/8][i%8] = raw_temp;
+		buffer[i%8][7 - i/8] = raw_temp;
 	}
 }
 
@@ -247,18 +247,17 @@ void data_push(uint16_t (*buffer)[8])
 		data[PixLg-1-(i / 8 * PixGain + 1)][i % 8 * PixGain + 1] = buffer[i/8][i%8];
 #endif
 	}
-	debug_printf("ext[0]=%0.2f ext[1]=%0.2f ext_add[0]=(%d,%d) ext_add[1]=(%d,%d) \r\n",
-												(float)ext[0] * 0.25, (float)ext[1] * 0.25f,
-												ext_add[0]/8, ext_add[0]%8,
-												ext_add[1]/8, ext_add[1]%8);
-
+	// debug_printf("ext[0]=%0.2f ext[1]=%0.2f ext_add[0]=(%d,%d) ext_add[1]=(%d,%d) \r\n",
+	// 											(float)ext[0] * 0.25, (float)ext[1] * 0.25f,
+	// 											ext_add[0]/8, ext_add[0]%8,
+	// 											ext_add[1]/8, ext_add[1]%8);
 }
 
 void get_img(void)
 {
 	uint16_t i;
 	long diff = ext[0] - ext[1] + 2;
-	if(diff<10)	diff = 10;
+	if(diff<20)	diff = 20;
 	for(i=0;i<PixLg*PixLg;i++){
 		data[i/PixLg][i%PixLg]=To_HSB(0xff&((data[i/PixLg][i%PixLg]-ext[1]+1)*0xff/diff));
 	}
@@ -270,7 +269,7 @@ void AMG8833_draw_Img(void)
 {
 	uint16_t i;
 	for (i = 0; i < PixLg*PixLg; i++) {
-		LCD_ColorBox(4+i/PixLg*3, 4+i%PixLg*3, 3, 3, data[i%PixLg][i/PixLg]);
+		LCD_ColorBox(2+i/PixLg*2, 2+i%PixLg*2, 2, 2, data[i/PixLg][i%PixLg]);
 	}
 }
 
