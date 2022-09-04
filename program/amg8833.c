@@ -202,11 +202,11 @@ uint16_t To_HSB(uint8_t num){
 	return 0xFFFF&((B&0xf8)>>3|(G&0xfC)<<3|(R&0xf8)<<8);
 }
 
-void AMG8833_get_Pixels(uint16_t (*buffer)[8])
+void AMG8833_get_Pixels(int16_t (*buffer)[8])
 {
 	uint8_t raw_array[128];
 	uint8_t i;
-	int32_t raw_temp;
+	int16_t raw_temp;
 
 	/* 连续读取 */
 	AMG8833_Read_Buf_Len(0x80, raw_array, 128);
@@ -218,7 +218,7 @@ void AMG8833_get_Pixels(uint16_t (*buffer)[8])
 			raw_temp = ~raw_temp;
 			raw_temp &= 0x0FFF;
 			raw_temp += 1;
-			raw_temp = -raw_temp;
+			raw_temp = 0x0 - raw_temp;
 		} else if (raw_temp > 0x200) {
 			raw_temp = 0x200;
 		}
@@ -226,11 +226,13 @@ void AMG8833_get_Pixels(uint16_t (*buffer)[8])
 	}
 }
 
-void data_push(uint16_t (*buffer)[8])
+void data_push(int16_t (*buffer)[8])
 {
 	uint8_t i;
-	ext[0] = 0;
-	ext[1] = 0x7fff;
+	ext[0] = buffer[0][0];
+	ext[1] = buffer[0][0];
+	ext_add[0] = 0;
+	ext_add[1] = 0;
 
 	for(i = 0; i < 64; i++) {
 		if(buffer[i/8][i%8] > ext[0]) {	//遍历最大值

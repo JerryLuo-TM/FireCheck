@@ -41,9 +41,9 @@
 
 #endif
 
-extern uint16_t PriData[8][8];
+extern int16_t PriData[8][8];
 extern long data[PixLg][PixLg];
-extern long ext[3];
+extern int16_t ext[3];
 extern uint8_t  ext_add[2];
 
 
@@ -57,7 +57,7 @@ float SignedMag12ToFloat(uint16_t val);
 void AMG8833_ReadPixels(float *buf, uint8_t size);
 
 
-void AMG8833_get_Pixels(uint16_t (*buffer)[8]);
+void AMG8833_get_Pixels(int16_t (*buffer)[8]);
 void AMG8833_get_Img(void);
 void AMG8833_draw_Img(void);
 

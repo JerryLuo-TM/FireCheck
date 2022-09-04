@@ -7,9 +7,9 @@ uint8_t uart1_rx_ring_buffer[256] __attribute__ ((aligned (4)));
 SemaphoreHandle_t xSemaphore_uart1_rx;
 
 
-uint16_t PriData[8][8];
+int16_t PriData[8][8];
 long data[PixLg][PixLg];
-long ext[3];
+int16_t ext[3];
 uint8_t ext_add[2];
 
 uint8_t fram_rate_count, fram_rate;
@@ -86,6 +86,7 @@ void demo_task(void *pvParameters)
 		LCD_ShowStr(82 + 2, 2, "FPS", 16);
 		LCD_ShowStr(82 + 24 + 2 ,  2, str_buf, 16);
 
+		debug_printf("max:%f min:%f \r\n", max_temp, min_temp);
 		{
 			if (max_temp > 35.0f) {
 				LASER_Switch = 1;
@@ -96,7 +97,7 @@ void demo_task(void *pvParameters)
 			}
 		}
 
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/10);
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/20);
 	}
 }
 
@@ -125,11 +126,11 @@ void caculate_task(void *pvParameters)
 	while (1)
 	{
 		count += 1;
-		if ((count % 20) == 0) {
+		if ((count % 50) == 0) {
 			fram_rate = fram_rate_count;
 			fram_rate_count = 0;
 		}
-		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/20);
+		vTaskDelayUntil(&xLastWakeTime, configTICK_RATE_HZ/50);
 	}
 }
 
