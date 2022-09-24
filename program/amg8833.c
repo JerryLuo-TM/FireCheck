@@ -302,23 +302,10 @@ void blowup(void)
 }
 #elif (Size == SIZEx8)
 
-void Draw_img(void){
+void AMG8833_draw_Img(void) {
 	uint16_t i;
-	for (i = 0; i < PixLg; i++){
-		LCD_ColorBox(5+i*2,40,2,1,data[i][0]);
-		LCD_ColorBox(5+i*2,159,2,1,data[i][PixLg-1]);
-		LCD_ColorBox(4,41+i*2,1,2,data[0][i]);
-		LCD_ColorBox(123,41+i*2,1,2,data[PixLg-1][i]);
-	}
-	LCD_ColorBox(4,40,1,1,data[0][0]);
-	LCD_ColorBox(4,159,1,1,data[0][PixLg-1]);
-	LCD_ColorBox(123,40,1,1,data[PixLg-1][0]);
-	LCD_ColorBox(123,159,1,1,data[PixLg-1][PixLg-1]);
 	for (i = 0; i < PixLg*PixLg; i++){
-// 		if(SysState.DispMeas == midd && i/PixLg>29 && i/PixLg<43 && i%PixLg>19 && i%PixLg<38)
-// 			;
-// 		else
-			LCD_ColorBox(5+i/PixLg*2,41+i%PixLg*2,2,2,data[i/PixLg][i%PixLg]);
+		LCD_ColorBox(1 + i/PixLg * 2, 1 + i%PixLg*2, 2, 2, data[i/PixLg][i%PixLg]);
 	}
 }
 
@@ -358,8 +345,8 @@ void blowup(void)
 void AMG8833_get_Img(void)
 {
 	data_push(PriData);	//数据转移
-	blowup();		//插值
-	get_img();		//插值转换为rgb图片
+	blowup();			//插值
+	get_img();			//插值转换为rgb图片
 }
 
 void AMG8833_ReadPixels(float *buf, uint8_t size)

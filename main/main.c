@@ -8,7 +8,7 @@ SemaphoreHandle_t xSemaphore_uart1_rx;
 
 
 int16_t PriData[8][8];
-long data[PixLg][PixLg];
+uint16_t data[PixLg][PixLg];
 int16_t ext[3];
 uint8_t ext_add[2];
 
@@ -145,7 +145,7 @@ void create_app_task(void)
 	//create demo task
     xTaskCreate((TaskFunction_t )demo_task,
                 (const char*    )"demo_task",
-                (uint16_t       )4096/sizeof(StackType_t),
+                (uint16_t       )1024/sizeof(StackType_t),
                 (void*          )NULL,
                 (UBaseType_t    )3,
                 (TaskHandle_t*  )NULL);

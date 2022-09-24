@@ -283,7 +283,6 @@ void LCD_SetPixel(uint16_t  x,uint16_t  y,uint16_t  color)
 
 void LCD_SetBigPixel(uint16_t  x,uint16_t  y,uint16_t  color)
 {
-	uint16_t i;
 	LCD_BlockWrite(x, x+1, y, y+1);
 	LCD_CS = 0;
 	LCD_RS = 1;
@@ -345,6 +344,7 @@ void LCD_Show_raw_map(float (*buffer)[8], uint16_t length)
 {
 	uint8_t i, j, colorIndex;
 	float colorTemp, Temputer;
+	(void)colorIndex;
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			/* 调整方向 */

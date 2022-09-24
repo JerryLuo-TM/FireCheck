@@ -42,7 +42,7 @@
 #endif
 
 extern int16_t PriData[8][8];
-extern long data[PixLg][PixLg];
+extern uint16_t data[PixLg][PixLg];
 extern int16_t ext[3];
 extern uint8_t  ext_add[2];
 
